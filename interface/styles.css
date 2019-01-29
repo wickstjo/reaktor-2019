@@ -1,0 +1,106 @@
+@font-face { font-family: 'Open Sans'; src: url('fonts/main.woff'); }
+input, span, li, svg { all: unset; }
+
+body {
+   background-color: rgb(56, 56, 56);
+   background-image: url('img/bg.png');
+	font: 13px 'Open Sans', verdana;
+   color: #505050;
+   padding: 0px;
+   margin: 0px;
+}
+
+a:link, a:visited, a:hover {
+	color: #0073A9;
+   transition: .3s;
+   cursor: pointer;
+   text-decoration: none;
+}
+
+a:hover { color: rgb(175, 30, 30); }
+
+/* --- SPLIT TABLE --- */
+
+.split {
+   display: table;
+   width: 100%
+}
+
+.split > div {
+   display: table-cell;
+   width: auto;
+   text-align: left;
+   vertical-align: top;
+}
+
+.split div:nth-child(2) { text-align: right; }
+
+/* --- WRAPPER --- */
+
+#wrapper {
+   display: table;
+   width: 700px;
+   margin: auto;
+   height: 100%;
+}
+
+#options-header {
+   background: rgba(0, 0, 0, 0.226);
+   border: 2px solid rgba(0, 0, 0, 0.055);
+   padding: 5px;
+   padding-left: 7px;
+   margin-top: 50px;
+   cursor: pointer;
+   color: white;
+}
+
+#options-body {
+   display: none;
+   position: absolute;
+   left: 0px;
+   top: 0px;
+}
+
+#arrow {
+   margin-top: 5px;
+   display: block;
+   margin-left: auto;
+   margin-right: auto;
+}
+
+#options {
+   background: rgba(0, 0, 0, 0.226);
+   border: 2px solid rgba(0, 0, 0, 0.055);
+   overflow: auto;
+   width: 650px;
+}
+
+#option {
+   padding: 5px;
+   padding-left: 7px;
+   color: rgb(44, 44, 44);
+   cursor: pointer;
+   color: rgba(255, 255, 255, 0.671);
+}
+
+#option:nth-child(even) { background: rgba(0, 0, 0, 0.062); }
+
+#option:hover {
+   background: rgba(42, 143, 50, 0.103);
+   color: white;
+}
+
+#chart {
+   margin-top: 5px;
+   height: 400px;
+   width: 700px;
+   color: white;
+}
+
+/* --- COLORED BOXES --- */
+
+.ends { background: rgba(94, 207, 94, 0.342); }
+.starts { background: rgba(255, 255, 29, 0.37); }
+.objectives { background: rgba(226, 84, 84, 0.418); }
+.special { background: rgba(94, 125, 192, 0.507); }
+.quest { background: rgba(226, 171, 108, 0.486); }

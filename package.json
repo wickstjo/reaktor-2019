@@ -4,6 +4,7 @@
       "ugly": "uglifyjs core/bundle.js -mc > core/bundle.min.js"
    },
    "dependencies": {
+      "d3": "^5.8.0",
       "uglify-es": "^3.3.9",
       "watchify": "^3.11.0"
    }

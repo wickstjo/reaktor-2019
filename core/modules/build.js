@@ -22,44 +22,69 @@ function create() {
    
    // FETCH ALL POPULATION & EMISSION DATA
    var population = fetch('SP.POP.TOTL');
-   var emissions = fetch('EN.ATM.CO2E.KT');
+   var emission = fetch('EN.ATM.CO2E.KT');
 
    // WAIT FOR BOTH PROMISES TO RESOLVE
-   return Promise.all([population, emissions]).then((response) => {
+   return Promise.all([population, emission]).then((response) => {
       
       // OVERWRITE THE OLD
       population = response[0][1];
-      emissions = response[1][1];
+      emission = response[1][1];
 
-      // DECLARE UNIFIED DATA OBJECT
+      // DECLARE ASSIST VARS
       var data = {};
 
-      // LOOP THROUGH & INJECT THE POPULATION BLOCK
-      population.forEach(item => {
-            
-         // CHECK IF COUNTRY AND YEAR HAVE BEEN DECLARED
-         if (data[item.country.value] == undefined) { data[item.country.value] = {}; }
-         if (data[item.country.value][item.date] == undefined && item.value != null) {
-            
-            // DEFUALT OBJECT
-            data[item.country.value][item.date] = {
-               population: 'N/A', emissions: 'N/A'
-            };
-         }
+      // LOOP THROUGH BOTH ARRAYS
+      for (var x = 0; x < population.length; x++) {
 
-         // INJECT POPULATION COUNT IF ITS AVAILABLE
-         if (item.value != null) {
-            data[item.country.value][item.date].population = item.value;
-         }
-      });
+         // CHECK THAT THERES A DATAPOINT FOR BOTH POPULATION & EMISSION FOR THAT YEAR
+         if (population[x].value != null && emission[x].value != null) {
 
-      // LOOP THROUGH & INJECT THE EMISSIONS BLOCK
-      emissions.forEach(item => {
+            // CREATE PROPERTY FOR THE COUNTRY IF IT DOESNT EXIST
+            if (data[population[x].country.value] == undefined) {
+               data[population[x].country.value] = {
+                  data: {},
+                  min: {
+                     population: 0,
+                     emission: 0
+                  },
+                  max: {
+                     population: 0,
+                     emission: 0
+                  }
+               };
+            }
 
-         // INJECT EMISSION COUNT IF ITS AVAILABLE & PARENT PROPERTY ISNT UNDEFINED
-         if (item.value != null && data[item.country.value][item.date] != undefined) {
-            data[item.country.value][item.date].emissions = item.value;
+            // INJECT AN OBJECT THAT CONTAINS DATA FOR THAT SPECIFIC YEAR
+            data[population[x].country.value].data[population[x].date] = {
+               population: population[x].value,
+               emission: emission[x].value
+            }
+
          }
+      }
+
+      // LOOP THROUGH EACH COUNTRY
+      Object.keys(data).forEach(country => {
+      
+         // CONTAINERS
+         var pop_array = [];
+         var emi_array = [];
+
+         // PUSH IN EACH VALUE TO THEIR RESPECTIVE ARRAY
+         Object.keys(data[country].data).forEach(year => {
+            pop_array.push(data[country].data[year].population);
+            emi_array.push(data[country].data[year].emission);
+         });
+
+         // SET MAX VALUES
+         data[country].max.population = Math.max(...pop_array);
+         data[country].max.emission = Math.max(...emi_array);
+
+         // SET MIN VALUES
+         data[country].min.population = Math.min(...pop_array);
+         data[country].min.emission = Math.min(...emi_array);
+
       });
 
       return data;
