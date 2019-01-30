@@ -1,29 +1,31 @@
+// WHEN OPTION IS CLICKED
 function options(build, d3) {
 
    $('body').on('click', '#option', (event) => {
 
-      // FIND THE TARGET
+      // FIND THE TARGET & THE YEARS WITH DATAPOINTS
       var target = build[event.target.innerText];
-
+      var years = Object.keys(target);
+      
       // SET SELECTOR HEADERS
-      $('#country').text(event.target.innerText);
+      $('#target').text(event.target.innerText + ' (' + years[0] + '-' + years[years.length - 1] + ')');
 
       // RENDER REQUEST INTO ONTO A CHART
       render(target, d3);
    });
 }
 
-// GENERATE RELATIONAL CHART & UPDATE DATA OBJECT
+// RENDER DATA TO A CHART
 function render(target, d3) {
 
-   // CREATE SHORTHANDS FOR CHART SELECTORS
-   var selector = {
-      population: '#population #content #inner #chart',
-      emission: '#emission #content #inner #chart'
-   }
-
-   // NUKE OLD SVGs
+   // NUKE OLD SVG
    $('svg').remove();
+
+   // CHART SELECTOR DIMENSIONS
+   var selector = {
+      height: $('#chart')[0].offsetHeight,
+      width: $('#chart')[0].offsetWidth
+   }
 
    // DECLARE CONTAINERS
    var lists = {
@@ -41,21 +43,18 @@ function render(target, d3) {
 
    // CREATE D3 PATHS FOR BOTH
    var paths = {
-      population: generate_path(lists.population, selector.population, d3),
-      emission: generate_path(lists.emission, selector.emission, d3)
+      population: generate_path(lists.population, selector, d3),
+      emission: generate_path(lists.emission, selector, d3)
    }
 
    // GENERATE GRAPH CANVAS
-   var canvas = d3.select(selector.population).append('svg')
+   var canvas = d3.select('#chart').append('svg')
 
       // ADD PATH
       canvas.append('path')
          .attr('fill', 'red')
          .attr('d', paths.population)
          .attr('opacity', 0.4)
-
-   // GENERATE GRAPH CANVAS
-   canvas = d3.select(selector.emission).append('svg')
 
       // ADD PATH
       canvas.append('path')
@@ -66,12 +65,6 @@ function render(target, d3) {
 
 // GENERATE A PATH
 function generate_path(source, selector, d3) {
-
-   // CHART SELECTOR DIMENSIONS
-   selector = {
-      height: $(selector)[0].offsetHeight,
-      width: $(selector)[0].offsetWidth
-   }
 
    // Y-SCALING -- BASED ON OVERALL HIGHEST VALUE
    var yScale = d3.scaleLinear()

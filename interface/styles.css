@@ -51,11 +51,14 @@ a:hover { color: rgb(175, 30, 30); }
 
 #menu {
    background: rgba(0, 0, 0, 0.226);
-   border-right: 2px solid rgba(0, 0, 0, 0.055);
    width: 250px;
 }
 
 #menu #options { overflow: auto; }
+#menu #options::-webkit-scrollbar { width: 7px; }
+#menu #options::-webkit-scrollbar-track { background: #00000038; }
+#menu #options::-webkit-scrollbar-thumb { background: rgba(253, 253, 253, 0.404); }
+
 #menu #options #inner { padding: 6px; }
 
 #menu #option {
@@ -82,19 +85,13 @@ a:hover { color: rgb(175, 30, 30); }
    padding: 5px;
 }
 
-#population, #emission {
+#chart-tbl {
    display: table;
-   height: 50%;
+   height: 100%;
    width: 100%;
-   -webkit-box-sizing: border-box;
-   -moz-box-sizing: border-box;
-   box-sizing: border-box;
 }
 
-#population { padding-bottom: 5px; }
-
 #header, #content { display: table-row; }
-
 #header { height: 1px; }
 
 #header #inner {
@@ -102,6 +99,10 @@ a:hover { color: rgb(175, 30, 30); }
    padding: 7px;
    padding-left: 9px;
    color: #CECECE;
+}
+
+#target {
+   color: rgba(102, 218, 102, 0.856);
 }
 
 #content #inner {
