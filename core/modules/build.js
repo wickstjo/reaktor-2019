@@ -42,50 +42,16 @@ function create() {
 
             // CREATE PROPERTY FOR THE COUNTRY IF IT DOESNT EXIST
             if (data[population[x].country.value] == undefined) {
-               data[population[x].country.value] = {
-                  data: {},
-                  min: {
-                     population: 0,
-                     emission: 0
-                  },
-                  max: {
-                     population: 0,
-                     emission: 0
-                  }
-               };
+               data[population[x].country.value] = {};
             }
 
             // INJECT AN OBJECT THAT CONTAINS DATA FOR THAT SPECIFIC YEAR
-            data[population[x].country.value].data[population[x].date] = {
+            data[population[x].country.value][population[x].date] = {
                population: population[x].value,
                emission: emission[x].value
             }
-
          }
       }
-
-      // LOOP THROUGH EACH COUNTRY
-      Object.keys(data).forEach(country => {
-      
-         // CONTAINERS
-         var pop_array = [];
-         var emi_array = [];
-
-         // PUSH IN EACH VALUE TO THEIR RESPECTIVE ARRAY
-         Object.keys(data[country].data).forEach(year => {
-            pop_array.push(data[country].data[year].population);
-            emi_array.push(data[country].data[year].emission);
-         });
-
-         // SET MAX VALUES
-         data[country].max.population = Math.max(...pop_array);
-         data[country].max.emission = Math.max(...emi_array);
-
-         // SET MIN VALUES
-         data[country].min.population = Math.min(...pop_array);
-         data[country].min.emission = Math.min(...emi_array);
-
-      });
 
       return data;
    });

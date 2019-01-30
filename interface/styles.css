@@ -62,16 +62,16 @@ a:hover { color: rgb(175, 30, 30); }
 }
 
 #arrow {
-   margin-top: 5px;
+   margin-top: 15px;
    display: block;
    margin-left: auto;
    margin-right: auto;
 }
 
 #options {
-   background: rgba(0, 0, 0, 0.226);
    border: 2px solid rgba(0, 0, 0, 0.055);
    overflow: auto;
+   height: 224px;
    width: 650px;
 }
 
@@ -91,10 +91,18 @@ a:hover { color: rgb(175, 30, 30); }
 }
 
 #chart {
+   background: rgba(0, 0, 0, 0.226);
+   border: 2px solid rgba(0, 0, 0, 0.055);
    margin-top: 5px;
    height: 400px;
    width: 700px;
    color: white;
+   overflow: hidden;
+}
+
+svg {
+   height: 100%;
+   width: 100%;
 }
 
 /* --- COLORED BOXES --- */

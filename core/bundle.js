@@ -58,50 +58,16 @@ function create() {
 
             // CREATE PROPERTY FOR THE COUNTRY IF IT DOESNT EXIST
             if (data[population[x].country.value] == undefined) {
-               data[population[x].country.value] = {
-                  data: {},
-                  min: {
-                     population: 0,
-                     emission: 0
-                  },
-                  max: {
-                     population: 0,
-                     emission: 0
-                  }
-               };
+               data[population[x].country.value] = {};
             }
 
             // INJECT AN OBJECT THAT CONTAINS DATA FOR THAT SPECIFIC YEAR
-            data[population[x].country.value].data[population[x].date] = {
+            data[population[x].country.value][population[x].date] = {
                population: population[x].value,
                emission: emission[x].value
             }
-
          }
       }
-
-      // LOOP THROUGH EACH COUNTRY
-      Object.keys(data).forEach(country => {
-      
-         // CONTAINERS
-         var pop_array = [];
-         var emi_array = [];
-
-         // PUSH IN EACH VALUE TO THEIR RESPECTIVE ARRAY
-         Object.keys(data[country].data).forEach(year => {
-            pop_array.push(data[country].data[year].population);
-            emi_array.push(data[country].data[year].emission);
-         });
-
-         // SET MAX VALUES
-         data[country].max.population = Math.max(...pop_array);
-         data[country].max.emission = Math.max(...emi_array);
-
-         // SET MIN VALUES
-         data[country].min.population = Math.min(...pop_array);
-         data[country].min.emission = Math.min(...emi_array);
-
-      });
 
       return data;
    });
@@ -147,64 +113,78 @@ function chart(build, d3) {
       // HIDE THE OPTIONS
       $('#options-body').css('display', 'none');
 
-      // FETCH SPECIFIC DATA
-      var target = build[event.target.innerText];
+      $('#options-header').text(event.target.innerText);
 
-      render(target, d3);
+      // RENDER REQUEST INTO ONTO A CHART
+      render(build[event.target.innerText], d3);
    });
 }
 
-// RENDER A CHART
+// GENERATE RELATIONAL CHART & UPDATE DATA OBJECT
 function render(target, d3) {
+
+   $('#chart').html('');
 
    // CHART SELECTOR DIMENSIONS
    var selector = {
-      height: $('#chart')[0].offsetHeight,
-      width: $('#chart')[0].offsetWidth
+      height: $('#chart')[0].offsetHeight - 4,
+      width: $('#chart')[0].offsetWidth - 4
    }
 
-   // Y-SCALING
+   // DECLARE CONTAINERS
+   var lists = {
+      population: [],
+      emission: []
+   }
+
+   // FILL THE LISTS
+   Object.keys(target).forEach(year => {
+      lists.population.push(target[year].population);
+      lists.emission.push(target[year].emission);
+   });
+
+   var paths = {
+      population: generate_path(lists.population, selector, d3),
+      emission: generate_path(lists.emission, selector, d3)
+   }
+
+   // GENERATE GRAPH CANVAS
+   var canvas = d3.select('#chart').append('svg')
+
+      // ADD PATH
+      canvas.append('path')
+         .attr('fill', 'red')
+         .attr('d', paths.population)
+         .attr('opacity', 0.4)
+
+      // ADD PATH
+      canvas.append('path')
+         .attr('fill', 'blue')
+         .attr('d', paths.emission)
+         .attr('opacity', 0.4)
+}
+
+// GENERATE A PATH
+function generate_path(source, selector, d3) {
+
+   // Y-SCALING -- BASED ON OVERALL HIGHEST VALUE
    var yScale = d3.scaleLinear()
-      .domain([target.min.population, target.max.population])
+      .domain([Math.max(...source), Math.min(...source)])
       .range([0, selector.height])
 
    // X-SCALING
-   var xScale = d3.scaleLinear()
-      .domain([0, Object.keys(target.data).length])
-      .rangeRound([0, selector.width]) 
+   var xScale = d3.scaleTime()
+      .domain([0, source.length - 1])
+      .rangeRound([0, selector.width])
 
-   // GENERATE PATH METHOD
-   var pathify = d3.line()
+   // PATH METHOD
+   var pathify = d3.area()
       .x((data, i) => { return xScale(i) })
-      .y((data) => { return yScale(data) })
+      .y0(yScale(0))
+      .y1((data) => { return yScale(data) })
 
-   // CONVERT XY OBJECTS INTO D3 PATHS
-   var testinggg = pathify(target.data);
-   
-   // GENERATE GRAPH CANVAS
-   var canvas = d3.select('#chart').append('svg')
-      .attr('height', selector.height)
-      .attr('width', selector.width)
-
-   // GENERATE PATH
-   canvas.append('path')
-      .attr('fill', 'none')
-      .attr('stroke', 'red')
-      .attr('stroke-width', 1)
-      .attr('opacity', 1)
-      .attr('d', testinggg)
-
-   // GENERATE DOTS FOR BREAKPOINTS
-   canvas.selectAll('line')
-      .data(target.data)
-         .enter().append('line')
-            .attr('x1', (d, i) => { return xScale(i) })
-            .attr('y1', (d, i) => { return yScale(data.spread.avg[i] - (d.difference * 5)) })
-            .attr('x2', (d, i) => { return xScale(i) })
-            .attr('y2', (d, i) => { return yScale(data.spread.avg[i] + (d.difference * 5)) })
-            .attr('stroke', settings.border.color)
-            .attr('stroke-width', line)
-            .attr('opacity', settings.opacity)
+   // RETURN A GENERATED PATH
+   return pathify(source);
 }
 
 // EXPORT MODULES
@@ -216,16 +196,12 @@ module.exports = {
 // CONSTRUCT THE OPTIONS MENU
 function options(build) {
 
-   // FETCH ALL THE KEYS
+   // FETCH ALL THE KEYS & DECLARE THE CONTAINER
    var keys = Object.keys(build);
-
-   // DECLARE THE SELECTOR CONTAINER
    var container = '';
 
    // LOOP THROUGH THE KEYS & CONSTRUCT AN OPTION
-   keys.forEach(item => {
-      container += '<div id="option">' + item + '</div>';
-   });
+   keys.forEach(item => { container += '<div id="option">' + item + '</div>'; });
 
    // INJECT THE CONTAINER
    $('#options').html(container);
