@@ -1,5 +1,5 @@
 @font-face { font-family: 'Open Sans'; src: url('fonts/main.woff'); }
-input, span, li, svg { all: unset; }
+input, span, li { all: unset; }
 
 body {
    background-color: rgb(56, 56, 56);
@@ -39,76 +39,79 @@ a:hover { color: rgb(175, 30, 30); }
 
 #wrapper {
    display: table;
-   width: 700px;
-   margin: auto;
-   height: 100%;
-}
-
-#options-header {
-   background: rgba(0, 0, 0, 0.226);
-   border: 2px solid rgba(0, 0, 0, 0.055);
-   padding: 5px;
-   padding-left: 7px;
-   margin-top: 50px;
-   cursor: pointer;
-   color: white;
-}
-
-#options-body {
-   display: none;
-   position: absolute;
-   left: 0px;
-   top: 0px;
-}
-
-#arrow {
-   margin-top: 15px;
-   display: block;
-   margin-left: auto;
-   margin-right: auto;
-}
-
-#options {
-   border: 2px solid rgba(0, 0, 0, 0.055);
-   overflow: auto;
-   height: 224px;
-   width: 650px;
-}
-
-#option {
-   padding: 5px;
-   padding-left: 7px;
-   color: rgb(44, 44, 44);
-   cursor: pointer;
-   color: rgba(255, 255, 255, 0.671);
-}
-
-#option:nth-child(even) { background: rgba(0, 0, 0, 0.062); }
-
-#option:hover {
-   background: rgba(42, 143, 50, 0.103);
-   color: white;
-}
-
-#chart {
-   background: rgba(0, 0, 0, 0.226);
-   border: 2px solid rgba(0, 0, 0, 0.055);
-   margin-top: 5px;
-   height: 400px;
-   width: 700px;
-   color: white;
-   overflow: hidden;
-}
-
-svg {
    height: 100%;
    width: 100%;
 }
 
-/* --- COLORED BOXES --- */
+#menu, #innerbody {
+   display: table-cell;
+   vertical-align: top;
+   width: auto;
+}
 
-.ends { background: rgba(94, 207, 94, 0.342); }
-.starts { background: rgba(255, 255, 29, 0.37); }
-.objectives { background: rgba(226, 84, 84, 0.418); }
-.special { background: rgba(94, 125, 192, 0.507); }
-.quest { background: rgba(226, 171, 108, 0.486); }
+#menu {
+   background: rgba(0, 0, 0, 0.226);
+   border-right: 2px solid rgba(0, 0, 0, 0.055);
+   width: 250px;
+}
+
+#menu #options { overflow: auto; }
+#menu #options #inner { padding: 6px; }
+
+#menu #option {
+   background: rgba(255, 255, 255, 0.062);
+   border-bottom: 1px solid rgba(255, 255, 255, 0.062);
+   padding: 5px;
+   padding-left: 7px;
+   color: rgb(168, 168, 168);
+   margin-bottom: 2px;
+}
+
+#menu #option:last-child {
+   margin: 0px;
+}
+
+#menu #option:hover {
+   background: rgba(80, 255, 80, 0.158);
+   border-bottom: 1px solid rgba(80, 255, 80, 0.158);
+   cursor: pointer;
+   color: white;
+}
+
+#innerbody {
+   padding: 5px;
+}
+
+#population, #emission {
+   display: table;
+   height: 50%;
+   width: 100%;
+   -webkit-box-sizing: border-box;
+   -moz-box-sizing: border-box;
+   box-sizing: border-box;
+}
+
+#population { padding-bottom: 5px; }
+
+#header, #content { display: table-row; }
+
+#header { height: 1px; }
+
+#header #inner {
+   background: rgba(0, 0, 0, 0.322);
+   padding: 7px;
+   padding-left: 9px;
+   color: #CECECE;
+}
+
+#content #inner {
+   background: rgba(0, 0, 0, 0.192);
+   border: 2px solid rgba(0, 0, 0, 0.103);
+   border-top: 0px;
+   height: 100%;
+}
+
+#chart, svg {
+   height: 100%;
+   width: 100%;
+}

@@ -10,8 +10,6 @@ function fetch(code) {
       // FIND ITEMCOUNT BASED ON PAGES
       var items = response[0].pages;
 
-      items = 1000;
-
       // REQUEST & RETURN ALL AVAILABLE DATA
       return $.getJSON('https://api.worldbank.org/v2/country/all/indicator/' + code + '?per_page=' + items + '&format=json');
    });
@@ -48,7 +46,8 @@ function create() {
             // INJECT AN OBJECT THAT CONTAINS DATA FOR THAT SPECIFIC YEAR
             data[population[x].country.value][population[x].date] = {
                population: population[x].value,
-               emission: emission[x].value
+               emission: emission[x].value,
+               score: population[x].value / emission[x].value
             }
          }
       }

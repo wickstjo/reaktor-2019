@@ -1,81 +1,61 @@
-// SHOW/HIDE OPTIONS MENU
-function options() {
-
-   // SHOW OPTIONS MENU
-   $('body').on('mouseover', '#options-header, #options-body', () => {
-      
-      // LEFT ALIGNMENT + OFFSET
-      var left = $('#options-header')[0].offsetLeft + 25;
-
-      // TOP ALIGNMENT
-      var top = $('#options-header')[0].offsetTop;
-      top += $('#options-header')[0].offsetHeight;
-
-      // EXECUTE CSS MOVEMENT & MAKE THE SELECTOR VISIBLE
-      $('#options-body').css('display', 'block');
-      $('#options-body').css('left', left);
-      $('#options-body').css('top', top);
-
-   });
-
-   // HIDE OPTIONS MENU
-   $('body').on('mouseout', '#options-header, #options-body', () => {
-      $('#options-body').css('display', 'none');
-   });
-
-}
-
-// SELECT CHART
-function chart(build, d3) {
+function options(build, d3) {
 
    $('body').on('click', '#option', (event) => {
 
-      // HIDE THE OPTIONS
-      $('#options-body').css('display', 'none');
+      // FIND THE TARGET
+      var target = build[event.target.innerText];
 
-      $('#options-header').text(event.target.innerText);
+      // SET SELECTOR HEADERS
+      $('#country').text(event.target.innerText);
 
       // RENDER REQUEST INTO ONTO A CHART
-      render(build[event.target.innerText], d3);
+      render(target, d3);
    });
 }
 
 // GENERATE RELATIONAL CHART & UPDATE DATA OBJECT
 function render(target, d3) {
 
-   $('#chart').html('');
-
-   // CHART SELECTOR DIMENSIONS
+   // CREATE SHORTHANDS FOR CHART SELECTORS
    var selector = {
-      height: $('#chart')[0].offsetHeight - 4,
-      width: $('#chart')[0].offsetWidth - 4
+      population: '#population #content #inner #chart',
+      emission: '#emission #content #inner #chart'
    }
+
+   // NUKE OLD SVGs
+   $('svg').remove();
 
    // DECLARE CONTAINERS
    var lists = {
       population: [],
-      emission: []
+      emission: [],
+      score: 0
    }
 
    // FILL THE LISTS
    Object.keys(target).forEach(year => {
       lists.population.push(target[year].population);
       lists.emission.push(target[year].emission);
+      lists.score += target[year].score;
    });
 
+   // CREATE D3 PATHS FOR BOTH
    var paths = {
-      population: generate_path(lists.population, selector, d3),
-      emission: generate_path(lists.emission, selector, d3)
+      population: generate_path(lists.population, selector.population, d3),
+      emission: generate_path(lists.emission, selector.emission, d3)
    }
 
    // GENERATE GRAPH CANVAS
-   var canvas = d3.select('#chart').append('svg')
+   var canvas = d3.select(selector.population).append('svg')
 
       // ADD PATH
       canvas.append('path')
          .attr('fill', 'red')
          .attr('d', paths.population)
          .attr('opacity', 0.4)
+
+   // GENERATE GRAPH CANVAS
+   canvas = d3.select(selector.emission).append('svg')
 
       // ADD PATH
       canvas.append('path')
@@ -86,6 +66,12 @@ function render(target, d3) {
 
 // GENERATE A PATH
 function generate_path(source, selector, d3) {
+
+   // CHART SELECTOR DIMENSIONS
+   selector = {
+      height: $(selector)[0].offsetHeight,
+      width: $(selector)[0].offsetWidth
+   }
 
    // Y-SCALING -- BASED ON OVERALL HIGHEST VALUE
    var yScale = d3.scaleLinear()
@@ -109,6 +95,5 @@ function generate_path(source, selector, d3) {
 
 // EXPORT MODULES
 module.exports = {
-   options: options,
-   chart: chart
+   options: options
 };
