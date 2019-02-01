@@ -2,21 +2,20 @@
 var build = require('./modules/build.js');
 var ui = require('./modules/ui.js');
 var events = require('./modules/events.js');
+var render = require('./modules/render.js');
 var d3 = require("d3");
 
-// SET MENU MAX HEIGHT
-var height = $(window)[0].innerHeight;
-$('#options').css('height', height);
-
 // CREATE THE BUILD
-build.create().then((response) => {
+build.dev().then((response) => {
 
-   // RENDER THE OPTIONS
    ui.options(response);
-   events.options(response, d3);
+   events.settings(ui);
+
+   // OPTIONS STUFF
+   //events.options(response, render, d3);
 
 });
-},{"./modules/build.js":2,"./modules/events.js":3,"./modules/ui.js":4,"d3":36}],2:[function(require,module,exports){
+},{"./modules/build.js":2,"./modules/events.js":3,"./modules/render.js":4,"./modules/ui.js":5,"d3":37}],2:[function(require,module,exports){
 // FETCH DATA BASED ON QUERY CODE
 function fetch(code) {
 
@@ -51,122 +50,101 @@ function create() {
       // DECLARE ASSIST VARS
       var data = {};
 
-      // BLACKLIST REGIONS FROM RESPONSE
-      var blacklist = [
-         'Arab World',
-         'Caribbean small states',
-         'Central Europe and the Baltics',
-         'Early-demographic dividend',
-         'East Asia & Pacific',
-         'East Asia & Pacific (excluding high income)',
-         'East Asia & Pacific (IDA & IBRD countries)',
-         'Euro area',
-         'Europe & Central Asia',
-         'Europe & Central Asia (excluding high income)',
-         'Europe & Central Asia (IDA & IBRD countries)',
-         'European Union',
-         'Fragile and conflict affected situations',
-         'Heavily indebted poor countries (HIPC)',
-         'High income',
-         'IBRD only',
-         'IDA & IBRD total',
-         'IDA blend',
-         'IDA only',
-         'IDA total',
-         'Late-demographic dividend',
-         'Latin America & Caribbean',
-         'Latin America & Caribbean (excluding high income)',
-         'Latin America & the Caribbean (IDA & IBRD countries)',
-         'Least developed countries: UN classification',
-         'Low & middle income',
-         'Low income',
-         'Lower middle income',
-         'Middle East & North Africa',
-         'Middle East & North Africa (excluding high income)',
-         'Middle East & North Africa (IDA & IBRD countries)',
-         'Middle income',
-         'North America',
-         'OECD members',
-         'Other small states',
-         'Pacific island small states',
-         'Post-demographic dividend',
-         'Pre-demographic dividend',
-         'Small states',
-         'South Asia',
-         'South Asia (IDA & IBRD)',
-         'Sub-Saharan Africa',
-         'Sub-Saharan Africa (excluding high income)',
-         'Sub-Saharan Africa (IDA & IBRD countries)',
-         'Upper middle income',
-         'World'
-      ];
-
       // LOOP THROUGH BOTH ARRAYS
       for (var x = 0; x < population.length; x++) {
 
-         // CHECK IF THE ITEM IS BLACKLISTED
-         var is_blacklisted = blacklisted(population[x].country.value, blacklist);
-
          // CHECK THAT BOTH SOURCES HAVE A DATAPOINT & THAT THE NAME ISNT BLACKLISTED
-         if (population[x].value != null && emission[x].value != null && is_blacklisted == false) {
+         if (population[x].value != null && emission[x].value != null) {
 
             // CREATE PROPERTY FOR THE COUNTRY IF IT DOESNT EXIST
             if (data[population[x].country.value] == undefined) {
-               data[population[x].country.value] = {};
+               data[population[x].country.value] = {
+                  overview: {},
+                  recent: {
+                     total: 0,
+                     capita: 0
+                  }
+               };
             }
 
             // INJECT AN OBJECT THAT CONTAINS DATA FOR THAT SPECIFIC YEAR
-            data[population[x].country.value][population[x].date] = {
+            data[population[x].country.value].overview[population[x].date] = {
                population: population[x].value,
-               emission: emission[x].value,
-               score: population[x].value / emission[x].value
+               emission: emission[x].value
             }
          }
       }
+
+      // LOOP THROUGH THE GENERATED OBJECT
+      Object.keys(data).forEach(country => {
+         
+         // FIND THE LATEST ENTRY
+         var keys = Object.keys(data[country].overview);
+         var latest = Math.max(...keys);
+
+         // SET STATS FOR THE MOST RECENT ENTRY -- FOR SORTING PURPOSES
+         data[country].recent.total = data[country].overview[latest].emission;
+         data[country].recent.capita = (data[country].overview[latest].emission / data[country].overview[latest].population) * 1000;
+      });
 
       return data;
    });
 }
 
-// CHECK IF A NAME IS BLACKLISTED
-function blacklisted(query, blacklist) {
-
-   // DEFAULT TO FALSE
-   var response = true;
-
-   // CHECK IF THE QUERY IS CONTAINER IN THE BLACKLIST ARRAY
-   var check = $.inArray(query, blacklist);
-   
-   // IF IT ISNT, CHANGE RESPONSE TO FALSE
-   if (check == -1) { response = false; }
-
-   return response;
+// FETCH HARDCODED DATASET -- FOR DEVELOPMENT ONLY
+function dev() {
+   var query = $.getJSON('core/dev_data.json');
+   return query.then((response) => { return response; });
 }
 
 // EXPORT MODULES
 module.exports = {
-   create: create
+   create: create,
+   dev: dev
 };
 },{}],3:[function(require,module,exports){
 // WHEN OPTION IS CLICKED
-function options(build, d3) {
+function options(build, render, d3) {
 
    $('body').on('click', '#option', (event) => {
 
-      // FIND THE TARGET & THE YEARS WITH DATAPOINTS
-      var target = build[event.target.innerText];
-      var years = Object.keys(target);
+      // FIND THE TARGET DATA & THE YEARS WITH DATAPOINTS
+      var data = build[event.target.innerText];
+      var years = Object.keys(data);
       
       // SET SELECTOR HEADERS
       $('#target').text(event.target.innerText + ' (' + years[0] + '-' + years[years.length - 1] + ')');
 
       // RENDER REQUEST INTO ONTO A CHART
-      render(target, d3);
+      render.chart(data, d3)
+      render.panel(data);
    });
 }
 
+// SETTINGS EVENTS
+function settings(ui) {
+   $('body').on('click', '#regions, #capita, #highlow', (event) => {
+
+      var status = $(event.target).attr('class');
+
+      if (status == 'active') {
+         $(event.target).attr('class', 'inactive');
+      } else {
+         $(event.target).attr('class', 'active');
+      }
+
+      ui.options();
+   });
+}
+
+// EXPORT MODULES
+module.exports = {
+   options: options,
+   settings: settings
+};
+},{}],4:[function(require,module,exports){
 // RENDER DATA TO A CHART
-function render(target, d3) {
+function chart(data, d3) {
 
    // NUKE OLD SVG
    $('svg').remove();
@@ -185,10 +163,10 @@ function render(target, d3) {
    }
 
    // FILL THE LISTS
-   Object.keys(target).forEach(year => {
-      lists.population.push(target[year].population);
-      lists.emission.push(target[year].emission);
-      lists.score += target[year].score;
+   Object.keys(data).forEach(year => {
+      lists.population.push(data[year].population);
+      lists.emission.push(data[year].emission);
+      lists.score += data[year].score;
    });
 
    // CREATE D3 PATHS FOR BOTH
@@ -202,15 +180,13 @@ function render(target, d3) {
 
       // ADD PATH
       canvas.append('path')
-         .attr('fill', 'red')
+         .attr('class', 'population-chart')
          .attr('d', paths.population)
-         .attr('opacity', 0.4)
 
       // ADD PATH
       canvas.append('path')
-         .attr('fill', 'blue')
+         .attr('class', 'emission-chart')
          .attr('d', paths.emission)
-         .attr('opacity', 0.4)
 }
 
 // GENERATE A PATH
@@ -231,35 +207,208 @@ function generate_path(source, selector, d3) {
       .x((data, i) => { return xScale(i) })
       .y0(yScale(0))
       .y1((data) => { return yScale(data) })
+      .curve(d3.curveCardinal)
 
    // RETURN A GENERATED PATH
    return pathify(source);
 }
 
-// EXPORT MODULES
-module.exports = {
-   options: options
-};
-},{}],4:[function(require,module,exports){
-// CONSTRUCT THE OPTIONS MENU
-function options(build) {
-   
-   // FETCH ALL THE KEYS & DECLARE THE CONTAINER
-   var keys = Object.keys(build);
+// RENDER SIDEPANEL CONTENTS
+function panel(data) {
+
+   // FIND KEYS & DECLARE CONTAINER
+   var years = Object.keys(data);
    var container = '';
 
-   // LOOP THROUGH THE KEYS & CONSTRUCT AN OPTION
-   keys.forEach(item => { container += '<div id="option">' + item + '</div>'; });
+   years.forEach(year => {
+      container += '<div id="block"><u>' + year + '</u><br>' + data[year].population + '<br>' + data[year].emission + '</div>';
+   });
 
-   // INJECT THE CONTAINER
-   $('#options #inner').html(container);
+   $('#details #inner').html(container);
 }
 
 // EXPORT MODULES
 module.exports = {
-   options: options
+   chart: chart,
+   panel: panel
 };
 },{}],5:[function(require,module,exports){
+var build = {};
+var countries = [];
+var latest = [];
+
+// CONSTRUCT THE OPTIONS MENU
+function options(response = null) {
+
+   // IF A PARAMETER IS GIVEN, SET THE GLOBAL VARS
+   if (response != null) {
+      build = response;
+      countries = Object.keys(build);
+   }
+
+   // DECLARE THE SELECTOR CONTAINER
+   var container = '';
+
+   // FILTER & SORT THE LIST OF COUNTRIES
+   var filtered = filter(countries);
+
+   // LOOP THROUGH THE KEYS & CONSTRUCT AN OPTION
+   filtered.forEach((item, index) => {
+      container += '<div id="option"><div class="split"><div>' + (index + 1) + '. ' + item.country + '</div><div>' + item.value + '</div></div></div>';
+   });
+
+   // INJECT THE CONTAINER
+   $('#options').html(container);
+
+   // DEFINE QUANTITY OF VISIBLE ITEMS
+   var limit = 15;
+   var item_height = $('#option')[0].offsetHeight;
+   
+   // SET THE PIXEL HEIGHT
+   $('#options').css('height', item_height * limit);
+}
+
+// SORT MENU ITEMS
+function filter(keys) {
+   
+   // CHECK WHICH OPTIONS ARE ACTIVE
+   var regions = is_active('#regions');
+   var capita = is_active('#capita');
+   var highlow = is_active('#highlow');
+
+   // IF 'REMOVE REGIONS' IS ACTIVE
+   if (regions == true) {
+      keys = keys.filter(word => is_blacklisted(word));
+   }
+   
+   // DECLARE TEMP OBJECT
+   var temp = [];
+
+   // LOOP THROUGH THE FILTERED COUNTRIES
+   keys.forEach(country => {
+      
+      // DEFAULT SORTING VALUE
+      var value = build[country].recent.total;
+
+      // IF 'PER CAPITA' IS ACTIVE
+      if (capita == true) { value = build[country].recent.capita }
+
+      // CREATE & PUSH AN OBJECT
+      temp.push({ country: country, value: value });
+   });
+   
+   // BUBBLE SORT FROM HIGH TO LOW
+   keys = bubble_sort(temp);
+
+   // IF 'LOWEST FIRST' IS ACTIVE, REVERSE THE ARRAY
+   if (highlow == true) { keys = keys.reverse() }
+
+   // MAKE LATEST REQUEST GLOBALLY AVAILABLE
+   latest = keys;
+
+   return keys;
+}
+
+// CHECK IF AN OPTION IS ACTIVE
+function is_active(selector) {
+
+   var response = true;
+   var check = $(selector).attr('class');
+
+   if (check == 'inactive') { response = false; }
+
+   return response;
+}
+
+// CHECK IF A NAME IS BLACKLISTED
+function is_blacklisted(name) {
+
+   // DEFAULT RESPONSE
+   var response = true;
+
+   // BLACKLISTED NAMES
+   var blacklist = [
+      'Arab World',
+      'Caribbean small states',
+      'Central Europe and the Baltics',
+      'Early-demographic dividend',
+      'East Asia & Pacific',
+      'East Asia & Pacific (excluding high income)',
+      'East Asia & Pacific (IDA & IBRD countries)',
+      'Euro area',
+      'Europe & Central Asia',
+      'Europe & Central Asia (excluding high income)',
+      'Europe & Central Asia (IDA & IBRD countries)',
+      'European Union',
+      'Fragile and conflict affected situations',
+      'Heavily indebted poor countries (HIPC)',
+      'High income',
+      'IBRD only',
+      'IDA & IBRD total',
+      'IDA blend',
+      'IDA only',
+      'IDA total',
+      'Late-demographic dividend',
+      'Latin America & Caribbean',
+      'Latin America & Caribbean (excluding high income)',
+      'Latin America & the Caribbean (IDA & IBRD countries)',
+      'Least developed countries: UN classification',
+      'Low & middle income',
+      'Low income',
+      'Lower middle income',
+      'Middle East & North Africa',
+      'Middle East & North Africa (excluding high income)',
+      'Middle East & North Africa (IDA & IBRD countries)',
+      'Middle income',
+      'North America',
+      'OECD members',
+      'Other small states',
+      'Pacific island small states',
+      'Post-demographic dividend',
+      'Pre-demographic dividend',
+      'Small states',
+      'South Asia',
+      'South Asia (IDA & IBRD)',
+      'Sub-Saharan Africa',
+      'Sub-Saharan Africa (excluding high income)',
+      'Sub-Saharan Africa (IDA & IBRD countries)',
+      'Upper middle income',
+      'World'
+   ];
+
+   // CHECK IF THE VALUE IS BLACKLISTED
+   if ($.inArray(name, blacklist) != -1) { response = false; }
+
+   return response;
+}
+
+// BUBBLE SORT KV LIST
+function bubble_sort(list) {
+
+   // https://stackoverflow.com/questions/7502489/bubble-sort-algorithm-javascript
+   var swapped;
+
+   do {
+      swapped = false;
+      for (var i = 0; i < list.length - 1; i++) {
+         if (list[i].value < list[i + 1].value) {
+            var temp = list[i];
+            list[i] = list[i + 1];
+            list[i + 1] = temp;
+            swapped = true;
+         }
+      }
+   } while (swapped);
+
+   return list;
+}
+
+
+// EXPORT MODULES
+module.exports = {
+   options: options
+};
+},{}],6:[function(require,module,exports){
 // https://d3js.org/d3-array/ v1.2.4 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -851,7 +1000,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 // https://d3js.org/d3-axis/ v1.0.12 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -1046,7 +1195,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 // https://d3js.org/d3-brush/ v1.0.6 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-transition')) :
@@ -1615,7 +1764,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-dispatch":12,"d3-drag":13,"d3-interpolate":21,"d3-selection":28,"d3-transition":33}],8:[function(require,module,exports){
+},{"d3-dispatch":13,"d3-drag":14,"d3-interpolate":22,"d3-selection":29,"d3-transition":34}],9:[function(require,module,exports){
 // https://d3js.org/d3-chord/ v1.0.6 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array'), require('d3-path')) :
@@ -1847,7 +1996,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":5,"d3-path":22}],9:[function(require,module,exports){
+},{"d3-array":6,"d3-path":23}],10:[function(require,module,exports){
 // https://d3js.org/d3-collection/ v1.0.7 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -2066,7 +2215,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 // https://d3js.org/d3-color/ v1.2.3 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -2617,7 +2766,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 // https://d3js.org/d3-contour/ v1.3.2 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
@@ -3050,7 +3199,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":5}],12:[function(require,module,exports){
+},{"d3-array":6}],13:[function(require,module,exports){
 // https://d3js.org/d3-dispatch/ v1.0.5 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -3147,7 +3296,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 // https://d3js.org/d3-drag/ v1.2.3 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch')) :
@@ -3383,7 +3532,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-dispatch":12,"d3-selection":28}],14:[function(require,module,exports){
+},{"d3-dispatch":13,"d3-selection":29}],15:[function(require,module,exports){
 // https://d3js.org/d3-dsv/ v1.0.10 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -3547,7 +3696,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 // https://d3js.org/d3-ease/ v1.0.5 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -3808,7 +3957,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 // https://d3js.org/d3-fetch/ v1.1.2 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dsv')) :
@@ -3912,7 +4061,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-dsv":14}],17:[function(require,module,exports){
+},{"d3-dsv":15}],18:[function(require,module,exports){
 // https://d3js.org/d3-force/ v1.2.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-quadtree'), require('d3-collection'), require('d3-dispatch'), require('d3-timer')) :
@@ -4582,7 +4731,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-collection":9,"d3-dispatch":12,"d3-quadtree":24,"d3-timer":32}],18:[function(require,module,exports){
+},{"d3-collection":10,"d3-dispatch":13,"d3-quadtree":25,"d3-timer":33}],19:[function(require,module,exports){
 // https://d3js.org/d3-format/ v1.3.2 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -4904,7 +5053,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 // https://d3js.org/d3-geo/ v1.11.3 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-array')) :
@@ -8009,7 +8158,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":5}],20:[function(require,module,exports){
+},{"d3-array":6}],21:[function(require,module,exports){
 // https://d3js.org/d3-hierarchy/ v1.1.8 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -9301,7 +9450,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 // https://d3js.org/d3-interpolate/ v1.3.2 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-color')) :
@@ -9875,7 +10024,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-color":10}],22:[function(require,module,exports){
+},{"d3-color":11}],23:[function(require,module,exports){
 // https://d3js.org/d3-path/ v1.0.7 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -10018,7 +10167,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 // https://d3js.org/d3-polygon/ v1.0.5 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -10170,7 +10319,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 // https://d3js.org/d3-quadtree/ v1.0.5 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -10607,7 +10756,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 // https://d3js.org/d3-random/ v1.1.2 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -10724,7 +10873,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 // https://d3js.org/d3-scale-chromatic/ v1.3.3 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-interpolate'), require('d3-color')) :
@@ -11224,7 +11373,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-color":10,"d3-interpolate":21}],27:[function(require,module,exports){
+},{"d3-color":11,"d3-interpolate":22}],28:[function(require,module,exports){
 // https://d3js.org/d3-scale/ v2.2.2 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-collection'), require('d3-array'), require('d3-interpolate'), require('d3-format'), require('d3-time'), require('d3-time-format')) :
@@ -12391,7 +12540,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-array":5,"d3-collection":9,"d3-format":18,"d3-interpolate":21,"d3-time":31,"d3-time-format":30}],28:[function(require,module,exports){
+},{"d3-array":6,"d3-collection":10,"d3-format":19,"d3-interpolate":22,"d3-time":32,"d3-time-format":31}],29:[function(require,module,exports){
 // https://d3js.org/d3-selection/ v1.4.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -13380,7 +13529,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 // https://d3js.org/d3-shape/ v1.3.3 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-path')) :
@@ -15331,7 +15480,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-path":22}],30:[function(require,module,exports){
+},{"d3-path":23}],31:[function(require,module,exports){
 // https://d3js.org/d3-time-format/ v2.1.3 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-time')) :
@@ -16017,7 +16166,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-time":31}],31:[function(require,module,exports){
+},{"d3-time":32}],32:[function(require,module,exports){
 // https://d3js.org/d3-time/ v1.0.10 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -16392,7 +16541,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 // https://d3js.org/d3-timer/ v1.0.9 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -16543,7 +16692,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 // https://d3js.org/d3-transition/ v1.2.0 Copyright 2019 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-dispatch'), require('d3-timer'), require('d3-color'), require('d3-interpolate'), require('d3-selection'), require('d3-ease')) :
@@ -17399,7 +17548,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-color":10,"d3-dispatch":12,"d3-ease":15,"d3-interpolate":21,"d3-selection":28,"d3-timer":32}],34:[function(require,module,exports){
+},{"d3-color":11,"d3-dispatch":13,"d3-ease":16,"d3-interpolate":22,"d3-selection":29,"d3-timer":33}],35:[function(require,module,exports){
 // https://d3js.org/d3-voronoi/ v1.1.4 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -18400,7 +18549,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{}],35:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 // https://d3js.org/d3-zoom/ v1.7.3 Copyright 2018 Mike Bostock
 (function (global, factory) {
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3-selection'), require('d3-dispatch'), require('d3-drag'), require('d3-interpolate'), require('d3-transition')) :
@@ -18904,7 +19053,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 })));
 
-},{"d3-dispatch":12,"d3-drag":13,"d3-interpolate":21,"d3-selection":28,"d3-transition":33}],36:[function(require,module,exports){
+},{"d3-dispatch":13,"d3-drag":14,"d3-interpolate":22,"d3-selection":29,"d3-transition":34}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -18977,4 +19126,4 @@ Object.keys(d3Zoom).forEach(function (key) { exports[key] = d3Zoom[key]; });
 exports.version = version;
 Object.defineProperty(exports, "event", {get: function() { return d3Selection.event; }});
 
-},{"d3-array":5,"d3-axis":6,"d3-brush":7,"d3-chord":8,"d3-collection":9,"d3-color":10,"d3-contour":11,"d3-dispatch":12,"d3-drag":13,"d3-dsv":14,"d3-ease":15,"d3-fetch":16,"d3-force":17,"d3-format":18,"d3-geo":19,"d3-hierarchy":20,"d3-interpolate":21,"d3-path":22,"d3-polygon":23,"d3-quadtree":24,"d3-random":25,"d3-scale":27,"d3-scale-chromatic":26,"d3-selection":28,"d3-shape":29,"d3-time":31,"d3-time-format":30,"d3-timer":32,"d3-transition":33,"d3-voronoi":34,"d3-zoom":35}]},{},[1]);
+},{"d3-array":6,"d3-axis":7,"d3-brush":8,"d3-chord":9,"d3-collection":10,"d3-color":11,"d3-contour":12,"d3-dispatch":13,"d3-drag":14,"d3-dsv":15,"d3-ease":16,"d3-fetch":17,"d3-force":18,"d3-format":19,"d3-geo":20,"d3-hierarchy":21,"d3-interpolate":22,"d3-path":23,"d3-polygon":24,"d3-quadtree":25,"d3-random":26,"d3-scale":28,"d3-scale-chromatic":27,"d3-selection":29,"d3-shape":30,"d3-time":32,"d3-time-format":31,"d3-timer":33,"d3-transition":34,"d3-voronoi":35,"d3-zoom":36}]},{},[1]);
