@@ -9,8 +9,5 @@ build.dev().then((response) => {
 
    ui.options(response);
    events.settings(ui);
-
-   // OPTIONS STUFF
-   //events.options(response, render, d3);
-
+   events.dropdown();
 });

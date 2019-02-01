@@ -10,10 +10,7 @@ build.dev().then((response) => {
 
    ui.options(response);
    events.settings(ui);
-
-   // OPTIONS STUFF
-   //events.options(response, render, d3);
-
+   events.dropdown();
 });
 },{"./modules/build.js":2,"./modules/events.js":3,"./modules/render.js":4,"./modules/ui.js":5,"d3":37}],2:[function(require,module,exports){
 // FETCH DATA BASED ON QUERY CODE
@@ -70,7 +67,7 @@ function create() {
             // INJECT AN OBJECT THAT CONTAINS DATA FOR THAT SPECIFIC YEAR
             data[population[x].country.value].overview[population[x].date] = {
                population: population[x].value,
-               emission: emission[x].value
+               emission: emission[x].value * 1000
             }
          }
       }
@@ -84,7 +81,7 @@ function create() {
 
          // SET STATS FOR THE MOST RECENT ENTRY -- FOR SORTING PURPOSES
          data[country].recent.total = data[country].overview[latest].emission;
-         data[country].recent.capita = (data[country].overview[latest].emission / data[country].overview[latest].population) * 1000;
+         data[country].recent.capita = (data[country].overview[latest].emission / data[country].overview[latest].population);
       });
 
       return data;
@@ -103,21 +100,39 @@ module.exports = {
    dev: dev
 };
 },{}],3:[function(require,module,exports){
-// WHEN OPTION IS CLICKED
-function options(build, render, d3) {
+// DROPDOWN EVENTS
+function dropdown() {
 
-   $('body').on('click', '#option', (event) => {
+   // SHOW PRIMARY OPTIONS
+   $('body').on('click', '#primary-search', () => {
 
-      // FIND THE TARGET DATA & THE YEARS WITH DATAPOINTS
-      var data = build[event.target.innerText];
-      var years = Object.keys(data);
+      var position = {
+         top: $('#primary-search')[0].offsetTop + $('#primary-search')[0].offsetHeight,
+         left: $('#primary-search')[0].offsetLeft
+      }
+
+      $('#primary-options').css('top', position.top);
+      $('#primary-options').css('left', position.left);
+      $('#primary-options').css('display', 'block');
+   });
+
+   // CLOSE OPTION EVENTS
+   $('body').on('click', (event) => {
       
-      // SET SELECTOR HEADERS
-      $('#target').text(event.target.innerText + ' (' + years[0] + '-' + years[years.length - 1] + ')');
+      // PICK UP TARGET ID
+      var target = $(event.target).attr('id');
 
-      // RENDER REQUEST INTO ONTO A CHART
-      render.chart(data, d3)
-      render.panel(data);
+      // IF THE PRIMARY OPTIONS ARE VISIBLE
+      if ($('#primary-options').css('display') == 'block') {
+
+         // DEFINE WHITELIST & CHECK IF THE ID IS WHITELISTED
+         var whitelist = ['primary-search', 'regions', 'capita', 'highlow'];
+         var check = $.inArray(target, whitelist);
+
+         // IF IT ISNT
+         if (check == -1) { $('#primary-options').css('display', 'none'); }
+      }
+
    });
 }
 
@@ -125,21 +140,23 @@ function options(build, render, d3) {
 function settings(ui) {
    $('body').on('click', '#regions, #capita, #highlow', (event) => {
 
+      // CHECK CURRENT STATUS
       var status = $(event.target).attr('class');
 
-      if (status == 'active') {
-         $(event.target).attr('class', 'inactive');
-      } else {
-         $(event.target).attr('class', 'active');
-      }
+      // TOGGLE TO INACTIVE
+      if (status == 'active') { $(event.target).attr('class', 'inactive');
 
+      // TOGGLE TO ACTIVE
+      } else { $(event.target).attr('class', 'active'); }
+
+      // RECALIBRATE OPTIONS MENU
       ui.options();
    });
 }
 
 // EXPORT MODULES
 module.exports = {
-   options: options,
+   dropdown: dropdown,
    settings: settings
 };
 },{}],4:[function(require,module,exports){
@@ -254,18 +271,11 @@ function options(response = null) {
 
    // LOOP THROUGH THE KEYS & CONSTRUCT AN OPTION
    filtered.forEach((item, index) => {
-      container += '<div id="option"><div class="split"><div>' + (index + 1) + '. ' + item.country + '</div><div>' + item.value + '</div></div></div>';
+      container += '<div id="option"><div class="split"><div>' + (index + 1) + '. ' + item.country + '</div><div>' + format_num(item.value) + '</div></div></div>';
    });
 
    // INJECT THE CONTAINER
-   $('#options').html(container);
-
-   // DEFINE QUANTITY OF VISIBLE ITEMS
-   var limit = 15;
-   var item_height = $('#option')[0].offsetHeight;
-   
-   // SET THE PIXEL HEIGHT
-   $('#options').css('height', item_height * limit);
+   $('#primary-options').html(container);
 }
 
 // SORT MENU ITEMS
@@ -403,6 +413,24 @@ function bubble_sort(list) {
    return list;
 }
 
+// FORMAT NUMBERS TO BE MORE PRESENTABLE
+function format_num(number) {
+
+   // IF THE NUMBER IS HIGHER THAN A MILLION -- DIVIDE MY A THOUSAND AND ADD A 'K'
+   if (number > 1000000) {
+      number = (number / 1000).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " K";
+   
+   } else {
+      
+      // MORE THAN A THOUSAND
+      if (number > 1000) { number = number.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+      // LESS THAN A THOUSAND
+      } else { number = number.toFixed(2); }
+   }
+
+   return number;
+}
 
 // EXPORT MODULES
 module.exports = {

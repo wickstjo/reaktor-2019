@@ -1,18 +1,36 @@
-// WHEN OPTION IS CLICKED
-function options(build, render, d3) {
+// DROPDOWN EVENTS
+function dropdown() {
 
-   $('body').on('click', '#option', (event) => {
+   // SHOW PRIMARY OPTIONS
+   $('body').on('click', '#primary-search', () => {
 
-      // FIND THE TARGET DATA & THE YEARS WITH DATAPOINTS
-      var data = build[event.target.innerText];
-      var years = Object.keys(data);
+      var position = {
+         top: $('#primary-search')[0].offsetTop + $('#primary-search')[0].offsetHeight,
+         left: $('#primary-search')[0].offsetLeft
+      }
+
+      $('#primary-options').css('top', position.top);
+      $('#primary-options').css('left', position.left);
+      $('#primary-options').css('display', 'block');
+   });
+
+   // CLOSE OPTION EVENTS
+   $('body').on('click', (event) => {
       
-      // SET SELECTOR HEADERS
-      $('#target').text(event.target.innerText + ' (' + years[0] + '-' + years[years.length - 1] + ')');
+      // PICK UP TARGET ID
+      var target = $(event.target).attr('id');
 
-      // RENDER REQUEST INTO ONTO A CHART
-      render.chart(data, d3)
-      render.panel(data);
+      // IF THE PRIMARY OPTIONS ARE VISIBLE
+      if ($('#primary-options').css('display') == 'block') {
+
+         // DEFINE WHITELIST & CHECK IF THE ID IS WHITELISTED
+         var whitelist = ['primary-search', 'regions', 'capita', 'highlow'];
+         var check = $.inArray(target, whitelist);
+
+         // IF IT ISNT
+         if (check == -1) { $('#primary-options').css('display', 'none'); }
+      }
+
    });
 }
 
@@ -20,20 +38,22 @@ function options(build, render, d3) {
 function settings(ui) {
    $('body').on('click', '#regions, #capita, #highlow', (event) => {
 
+      // CHECK CURRENT STATUS
       var status = $(event.target).attr('class');
 
-      if (status == 'active') {
-         $(event.target).attr('class', 'inactive');
-      } else {
-         $(event.target).attr('class', 'active');
-      }
+      // TOGGLE TO INACTIVE
+      if (status == 'active') { $(event.target).attr('class', 'inactive');
 
+      // TOGGLE TO ACTIVE
+      } else { $(event.target).attr('class', 'active'); }
+
+      // RECALIBRATE OPTIONS MENU
       ui.options();
    });
 }
 
 // EXPORT MODULES
 module.exports = {
-   options: options,
+   dropdown: dropdown,
    settings: settings
 };

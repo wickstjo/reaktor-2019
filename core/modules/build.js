@@ -52,7 +52,7 @@ function create() {
             // INJECT AN OBJECT THAT CONTAINS DATA FOR THAT SPECIFIC YEAR
             data[population[x].country.value].overview[population[x].date] = {
                population: population[x].value,
-               emission: emission[x].value
+               emission: emission[x].value * 1000
             }
          }
       }
@@ -66,7 +66,7 @@ function create() {
 
          // SET STATS FOR THE MOST RECENT ENTRY -- FOR SORTING PURPOSES
          data[country].recent.total = data[country].overview[latest].emission;
-         data[country].recent.capita = (data[country].overview[latest].emission / data[country].overview[latest].population) * 1000;
+         data[country].recent.capita = (data[country].overview[latest].emission / data[country].overview[latest].population);
       });
 
       return data;
