@@ -7,7 +7,6 @@ body {
 	font: 13px 'Open Sans', verdana;
    color: #505050;
    padding: 0px;
-   padding-top: 100px;
    margin: 0px;
 }
 
@@ -39,36 +38,62 @@ a:hover { color: rgb(175, 30, 30); }
 /* --- WRAPPER --- */
 
 #wrapper {
+   width: 100%;
    height: 100%;
-   width: 500px;
-   margin: auto;
+   display: table;
 }
 
-#settings {
-   padding-bottom: 5px;
-   text-align: right;
+#wrapper #menu-outer, #wrapper .chart-outer {
+   display: table-row;
+   height: auto;
+   width: 100%;
+}
+
+#wrapper #menu-outer { height: 1px; }
+
+/* --- MENU --- */
+
+#menu {
+   background: rgba(0, 0, 0, 0.336);
+   border-bottom: 2px solid rgba(0, 0, 0, 0.164);
+   display: table;
+   width: 100%;
+}
+
+#menu div {
+   display: table-cell;
+   width: auto;
+   padding: 6px;
+   padding-bottom: 4px;
+}
+
+#menu div:last-child {
+   width:1%;
+   white-space: nowrap;
+   padding-left: 0px;
 }
 
 #regions, #capita, #highlow {
    display: inline-block;
    cursor: pointer;
+   margin-left: 5px;
 }
 
-.active, .inactive {
-   background: rgba(48, 214, 48, 0.233);
-   border-bottom: 2px solid rgba(48, 214, 48, 0.13);
+#regions { margin: 0px; }
+
+.inactive, .active {
+   background: rgba(223, 78, 78, 0.233);
+   border-bottom: 2px solid rgba(224, 65, 65, 0.192);
+   color: rgba(255, 255, 255, 0.74);
    padding: 5px 7px;
-   margin-left: 5px;
    display: inline-block;
-   color: rgba(206, 206, 206, 0.658);
-   color: rgb(216, 216, 216);
    transition: 0.1s;
 }
 
-.inactive {
-   background: rgba(0, 0, 0, 0.26);
-   border-bottom: 2px solid rgba(0, 0, 0, 0.164);
-   color: rgba(255, 255, 255, 0.692);
+.active {
+   background: rgba(51, 202, 51, 0.199);
+   border-bottom: 2px solid rgba(48, 214, 48, 0.13);
+   color: white;
 }
 
 input {
@@ -85,37 +110,31 @@ input {
    -moz-box-sizing: border-box;
    box-sizing: border-box;
    cursor: pointer;
-   margin-bottom: 5px;
 }
 
-#secondary-search {
-   border-left: 2px solid rgba(66, 136, 201, 0.233);
-   text-align: left;
-}
+input::placeholder { color: rgb(216, 216, 216); }
 
-input::placeholder {
-   color: rgb(216, 216, 216);
-}
+/* --- OPTIONS --- */
 
-#primary-options {
-   background: rgba(0, 0, 0, 0.336);
+#options {
+   background: rgb(32, 32, 32);
    border: 2px solid rgba(0, 0, 0, 0.164);
    border-right: 0px;
+   border-top: 0px;
    overflow: auto;
-   max-height: 304px;
-   margin-top: 5px;
-   position: absolute;
-   width: inherit;
+   width: 100%;
    -webkit-box-sizing: border-box;
    -moz-box-sizing: border-box;
    box-sizing: border-box;
+   max-height: 224px;
+   position: absolute;
    display: none;
    z-index: 99;
 }
 
-#primary-options::-webkit-scrollbar { width: 7px; }
-#primary-options::-webkit-scrollbar-track { background: #00000038; }
-#primary-options::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.404); }
+#options::-webkit-scrollbar { width: 7px; }
+#options::-webkit-scrollbar-track { background: #00000038; }
+#options::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.404); }
 
 #option {
    padding: 5px 7px;
@@ -130,11 +149,38 @@ input::placeholder {
    cursor: pointer;
 }
 
-#primary-chart {
+/* --- CHARTS --- */
+
+#population-chart, #emission-chart, #capita-chart {
+   width: 100%;
+   height: 100%;
+   padding: 5px;
+   padding-bottom: 0px;
+   -webkit-box-sizing: border-box;
+   -moz-box-sizing: border-box;
+   box-sizing: border-box;
+   position: relative;
+}
+
+#capita-chart { padding-bottom: 5px; }
+
+.header {
+   position: absolute;
+   left: 15px;
+   top: 11px;
+   color: rgba(255, 255, 255, 0.945);
+   pointer-events: none;
+   z-index: -1;
+}
+
+.inner {
+   width: 100%;
+   height: 100%;
    background: rgba(0, 0, 0, 0.26);
    border: 2px solid rgba(0, 0, 0, 0.164);
-   height: 300px;
-   margin-bottom: 5px;
+   -webkit-box-sizing: border-box;
+   -moz-box-sizing: border-box;
+   box-sizing: border-box;
 }
 
 svg {
@@ -142,33 +188,45 @@ svg {
    height: 100%;
 }
 
-.population-chart, .emission-chart, .capita-chart {
-   opacity: 0.4;
-   stroke-width: 2px;
+/* --- CHARTS GADGETS --- */
+
+line {
+   stroke: rgba(255, 255, 255, 0.048);
+   stroke-width: 4px;
+   z-index: 99;
 }
 
-.population-chart {
+line:hover {
+   stroke: rgba(255, 255, 255, 0.192);
+}
+
+.population-area, .emission-area, .capita-area {
+   opacity: 0.6;
+}
+
+.population-area {
    fill: rgba(37, 156, 37, 0.795);
    stroke: rgba(61, 201, 61, 0.795);
 }
 
-.emission-chart {
+.emission-area {
    fill: rgb(199, 63, 63);
    stroke: rgb(223, 104, 104);
 }
 
-.capita-chart {
+.capita-area {
    fill: rgb(33, 89, 141);
    stroke: rgb(60, 121, 179);
 }
 
-line { stroke: rgba(255, 255, 255, 0.048); }
-
-.tick:nth-child(2) line {
-   stroke: rgb(47, 47, 47);
-}
-
-circle {
-   fill: rgba(255, 255, 255, 0.219);
-   z-index: 99;
+#tooltip {
+   position: absolute;
+   left: 20px;
+   top: 20px;
+   background: white;
+   padding: 5px 7px;
+   display: none;
+   opacity: 0;
+   pointer-events: none;
+   transition: 0.6s;
 }

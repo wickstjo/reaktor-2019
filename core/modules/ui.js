@@ -23,7 +23,7 @@ function options(response = null) {
    });
 
    // INJECT THE CONTAINER
-   $('#primary-options').html(container);
+   $('#options').html(container);
 }
 
 // SORT MENU ITEMS

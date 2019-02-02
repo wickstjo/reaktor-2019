@@ -2,18 +2,14 @@
 function dropdown() {
 
    // SHOW PRIMARY OPTIONS
-   $('body').on('click', '#primary-search', () => {
+   $('body').on('click', '#search', () => {
 
-      var position = {
-         top: $('#primary-search')[0].offsetTop + $('#primary-search')[0].offsetHeight,
-         left: $('#primary-search')[0].offsetLeft
-      }
+      // FIND MENU HEIGHT
+      var top = $('#menu')[0].offsetHeight;
 
-      $('#primary-chart').css('opacity', 0);
-
-      $('#primary-options').css('top', position.top);
-      $('#primary-options').css('left', position.left);
-      $('#primary-options').css('display', 'block');
+      // CHANGE POSITION
+      $('#options').css('top', top);
+      $('#options').css('display', 'block');
    });
 
    // CLOSE OPTION EVENTS
@@ -23,19 +19,15 @@ function dropdown() {
       var target = $(event.target).attr('id');
 
       // IF THE PRIMARY OPTIONS ARE VISIBLE
-      if ($('#primary-options').css('display') == 'block') {
+      if ($('#options').css('display') == 'block') {
 
          // DEFINE WHITELIST & CHECK IF THE ID IS WHITELISTED
-         var whitelist = ['primary-search', 'regions', 'capita', 'highlow'];
+         var whitelist = ['search', 'regions', 'capita', 'highlow'];
          var check = $.inArray(target, whitelist);
 
          // IF IT ISNT
-         if (check == -1) {
-            $('#primary-options').css('display', 'none');
-            $('#primary-chart').css('opacity', 1);
-         }
+         if (check == -1) { $('#options').css('display', 'none'); }
       }
-
    });
 }
 
@@ -65,7 +57,7 @@ function select(build, render, d3) {
       var country = $(event.currentTarget).attr('country');
 
       // SET INPUT VALUE
-      $('#primary-search').val(country);
+      $('#search').val(country);
 
       // RENDER CHART
       render.chart(build[country], d3);

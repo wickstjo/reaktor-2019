@@ -9,11 +9,30 @@
 </head>
 <body>
    <div id="wrapper">
-      <div id="settings">
-         <span id="regions" class="inactive">Remove Regions</span><span id="capita" class="inactive">Per Capita</span><span id="highlow" class="inactive">Lowest First</span>
+      <div id="menu-outer">
+         <div id="menu">
+            <div><input type="text" placeholder="Select a Country or Region" id="search"></div>
+            <div><span id="regions" class="inactive">Remove Regions</span><span id="capita" class="inactive">Per Capita</span><span id="highlow" class="inactive">Lowest First</span></div>
+         </div>
       </div>
-      <input type="text" placeholder="Select Country" id="primary-search">
-      <div id="primary-options"></div>
-      <div id="primary-chart"></div>
+      <div class="chart-outer">
+         <div id="population-chart">
+            <div class="header">Population</div>
+            <div class="inner"><svg></svg></div></div>
+      </div>
+      <div class="chart-outer">
+         <div id="emission-chart">
+            <div class="header">CO² Emission</div>
+            <div class="inner"><svg></svg></div>
+         </div>
+      </div>
+      <div class="chart-outer">
+         <div id="capita-chart">
+            <div class="header">CO² Emission Per Capita</div>
+            <div class="inner"><svg></svg></div>
+         </div>
+      </div>
    </div>
+   <div id="options"></div>
+   <div id="tooltip"></div>
 </body>

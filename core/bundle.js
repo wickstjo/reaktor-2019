@@ -105,18 +105,14 @@ module.exports = {
 function dropdown() {
 
    // SHOW PRIMARY OPTIONS
-   $('body').on('click', '#primary-search', () => {
+   $('body').on('click', '#search', () => {
 
-      var position = {
-         top: $('#primary-search')[0].offsetTop + $('#primary-search')[0].offsetHeight,
-         left: $('#primary-search')[0].offsetLeft
-      }
+      // FIND MENU HEIGHT
+      var top = $('#menu')[0].offsetHeight;
 
-      $('#primary-chart').css('opacity', 0);
-
-      $('#primary-options').css('top', position.top);
-      $('#primary-options').css('left', position.left);
-      $('#primary-options').css('display', 'block');
+      // CHANGE POSITION
+      $('#options').css('top', top);
+      $('#options').css('display', 'block');
    });
 
    // CLOSE OPTION EVENTS
@@ -126,19 +122,15 @@ function dropdown() {
       var target = $(event.target).attr('id');
 
       // IF THE PRIMARY OPTIONS ARE VISIBLE
-      if ($('#primary-options').css('display') == 'block') {
+      if ($('#options').css('display') == 'block') {
 
          // DEFINE WHITELIST & CHECK IF THE ID IS WHITELISTED
-         var whitelist = ['primary-search', 'regions', 'capita', 'highlow'];
+         var whitelist = ['search', 'regions', 'capita', 'highlow'];
          var check = $.inArray(target, whitelist);
 
          // IF IT ISNT
-         if (check == -1) {
-            $('#primary-options').css('display', 'none');
-            $('#primary-chart').css('opacity', 1);
-         }
+         if (check == -1) { $('#options').css('display', 'none'); }
       }
-
    });
 }
 
@@ -168,7 +160,7 @@ function select(build, render, d3) {
       var country = $(event.currentTarget).attr('country');
 
       // SET INPUT VALUE
-      $('#primary-search').val(country);
+      $('#search').val(country);
 
       // RENDER CHART
       render.chart(build[country], d3);
@@ -184,129 +176,128 @@ module.exports = {
 },{}],4:[function(require,module,exports){
 // RENDER DATA TO A CHART
 function chart(data, d3) {
-
-   // NUKE OLD SVG
-   $('svg').remove();
-
-   // CHART SELECTOR DIMENSIONS
-   var selector = {
-      height: $('#primary-chart')[0].offsetHeight - 4,
-      width: $('#primary-chart')[0].offsetWidth - 4
-   }
-
+   
    // DECLARE CONTAINERS
    var lists = {
       population: [],
       emission: [],
-      capita: [],
-      score: 0
+      capita: []
    }
+
+   // FETCH THE YEARS
+   var years = Object.keys(data.overview);
 
    // FILL THE LISTS
-   Object.keys(data.overview).forEach(year => {
+   years.forEach(year => {
       lists.population.push(data.overview[year].population);
       lists.emission.push(data.overview[year].emission);
-      lists.score += data.overview[year].score;
+      lists.capita.push(data.overview[year].emission / data.overview[year].population);
    });
 
-   // UNIVERSAL X-SCALING
-   var xScale = d3.scaleTime()
-      .domain([0, lists.population.length - 1])
-      .rangeRound([0, selector.width])
+   // CONVERT ARRAY DATA TO CHARTS
+   generate_charts(lists, years, d3);
+}
 
-   // POPULATION Y-SCALING
-   var yScalePop = generate_yScaling(lists.population, selector, d3);
-   var yScaleEmi = generate_yScaling(lists.emission, selector, d3);
+// GENERATE CHARTS
+function generate_charts(data, years, d3) {
 
-   // POPULATION AXIS (LEFT)
-   var popAxis = d3.axisRight(yScalePop)
-      .tickPadding(7)
-      .ticks(5)
+   // FIND THE HEADER KEYS
+   var keys = Object.keys(data);
 
-   // POPULATION AXIS (LEFT)
-   var emiAxis = d3.axisTop(yScaleEmi)
-      .tickPadding(7)
-      .ticks(5)
+   // LOOP THROUGH
+   keys.forEach(header => {
 
-   // GENERATE D3 PATHS FOR BOTH
-   var paths = {
-      population: generate_path(lists.population, xScale, yScalePop, d3),
-      emission: generate_path(lists.emission, xScale, yScaleEmi, d3)
+      // CHART SELECTOR DIMENSIONS
+      var selector = {
+         height: $('#' + header + '-chart .inner')[0].clientHeight,
+         width: $('#' + header + '-chart .inner')[0].clientWidth
+      }
+
+      // NUKE OLD CONTENT
+      $('#' + header + '-chart .inner').html('');
+
+      // Y SCALING
+      var yScale = d3.scaleLinear()
+         .domain([Math.max(...data[header]), Math.min(...data[header])])
+         .range([0, selector.height])
+
+      // X SCALING
+      var xScale = d3.scaleTime()
+         .domain([0, data[header].length - 1])
+         .rangeRound([0, selector.width])
+
+      // PATH METHOD
+      var pathify = d3.area()
+         .x((data, i) => { return xScale(i) })
+         .y0(yScale(0))
+         .y1((data) => { return yScale(data) })
+         //.curve(d3.curveCardinal)
+
+      // GENERATE AN AREA PATH
+      var path = pathify(data[header]);
+
+      // GENERATE CANVAS
+      var canvas = d3.select('#' + header + '-chart .inner').append('svg')
+
+         // ADD POPULATION PATH
+         canvas.append('path')
+            .attr('class', header + '-area')
+            .attr('d', path)
+
+         // ADD DOTS
+         canvas.selectAll('.' + header + '-line')
+            .data(data[header])
+               .enter().append('line')
+               .attr('class', '.' + header + '-line')
+               .attr('x1', (data, i) => { return xScale(i) })
+               .attr('x2', (data, i) => { return xScale(i) })
+               .attr('y1', 0)
+               .attr('y2', selector.height)
+
+               .on('mouseover', function(d, i) {
+                  d3.select(this)
+                  show_tooltip(d3.event, years[i], d);
+               })
+   });
+}
+
+function testing(data, index) {
+   log(data)
+   log(index)
+}
+
+// SHOW TOOLTIP
+function show_tooltip(event, year, value) {
+
+   // SHORTHAND
+   var tooltip = $('#tooltip');
+
+   // INJECT NEW TOOLTIP CONTENT
+   tooltip.html(year + '<br>' + value).css('display', 'block')
+
+   // FIND DOT COORDINATES
+   var coords = {
+      top: event.clientY,
+      left: event.clientX
    }
 
-   // GENERATE CANVAS
-   var canvas = d3.select('#primary-chart').append('svg')
+   // FIND TOOLTIPS DIMENSIONS
+   var dimensions = {
+      height: tooltip[0].clientHeight,
+      width: tooltip[0].clientWidth
+   }
 
-      // ADD POPULATION PATH
-      canvas.append('path')
-         .attr('class', 'population-chart')
-         .attr('d', paths.population)
-
-      // ADD DOTS
-      canvas.selectAll('.pop')
-         .data(lists.population)
-            .enter().append('circle')
-            .attr('class', 'pop')
-            .attr('cx', (data, i) => { return xScale(i) })
-            .attr('cy', (data) => { return yScalePop(data) })
-            .attr('r', 2)
-
-      // ADD EMISSION PATH
-      canvas.append('path')
-         .attr('class', 'emission-chart')
-         .attr('d', paths.emission)
-
-      // ADD DOTS
-      canvas.selectAll('.eme')
-         .data(lists.emission)
-            .enter().append('circle')
-            .attr('class', 'eme')
-            .attr('cx', (data, i) => { return xScale(i) })
-            .attr('cy', (data) => { return yScaleEmi(data) })
-            .attr('r', 2)
-
-      // ADD GRIDLINES
-      canvas.append('g')
-         .attr('transform', 'translate(0, ' + selector.height + ')')
-         .call(
-            d3.axisBottom(xScale)
-               .tickSize(-selector.height)
-               .tickFormat('')
-               .ticks(lists.population.length)
-         )
-
-      // ADD POPULATION AXIS
-      canvas.append('g')
-         .attr('class', 'yAxis')
-         .call(popAxis)
-         .style('pointer-events', 'unset')
-
-      // ADD EMISSION AXIS
-      canvas.append('g')
-         .attr('class', 'yAxisx')
-         .call(emiAxis)
-         .style('pointer-events', 'unset')
+   // POSITION & SHOW THE TOOLTIP
+   tooltip
+      .css('top', coords.top - (dimensions.height + 10))
+      .css('left', coords.left - (dimensions.width / 2))
+      .css('opacity', 1)
 }
 
-// GENERATE A D3 AREA PATH
-function generate_path(source, xScale, yScale, d3) {
-
-   // PATH METHOD
-   var pathify = d3.area()
-      .x((data, i) => { return xScale(i) })
-      .y0(yScale(0))
-      .y1((data) => { return yScale(data) })
-      //.curve(d3.curveCardinal)
-
-   // RETURN A GENERATED PATH
-   return pathify(source);
-}
-
-// GENERATE YSCALING
-function generate_yScaling(source, selector, d3) {
-   return d3.scaleLinear()
-      .domain([Math.max(...source), Math.min(...source)])
-      .range([0, selector.height])
+// HIDE TOOLTIP
+function hide_tooltip() {
+   $('#tooltip').css('display', 'none');
+   $('#tooltip').css('opacity', 0);
 }
 
 // EXPORT MODULES
@@ -339,7 +330,7 @@ function options(response = null) {
    });
 
    // INJECT THE CONTAINER
-   $('#primary-options').html(container);
+   $('#options').html(container);
 }
 
 // SORT MENU ITEMS
