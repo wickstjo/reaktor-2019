@@ -9,6 +9,8 @@ function dropdown() {
          left: $('#primary-search')[0].offsetLeft
       }
 
+      $('#primary-chart').css('opacity', 0);
+
       $('#primary-options').css('top', position.top);
       $('#primary-options').css('left', position.left);
       $('#primary-options').css('display', 'block');
@@ -28,7 +30,10 @@ function dropdown() {
          var check = $.inArray(target, whitelist);
 
          // IF IT ISNT
-         if (check == -1) { $('#primary-options').css('display', 'none'); }
+         if (check == -1) {
+            $('#primary-options').css('display', 'none');
+            $('#primary-chart').css('opacity', 1);
+         }
       }
 
    });
@@ -52,8 +57,24 @@ function settings(ui) {
    });
 }
 
+// SELECT EVENTS
+function select(build, render, d3) {
+   $('body').on('click', '#option', (event) => {
+
+      // FETCH SELECTED COUNTRY
+      var country = $(event.currentTarget).attr('country');
+
+      // SET INPUT VALUE
+      $('#primary-search').val(country);
+
+      // RENDER CHART
+      render.chart(build[country], d3);
+   });
+}
+
 // EXPORT MODULES
 module.exports = {
    dropdown: dropdown,
-   settings: settings
+   settings: settings,
+   select: select
 };

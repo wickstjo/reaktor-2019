@@ -10,4 +10,5 @@ build.dev().then((response) => {
    ui.options(response);
    events.settings(ui);
    events.dropdown();
+   events.select(response, render, d3);
 });

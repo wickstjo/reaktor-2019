@@ -19,7 +19,7 @@ function options(response = null) {
 
    // LOOP THROUGH THE KEYS & CONSTRUCT AN OPTION
    filtered.forEach((item, index) => {
-      container += '<div id="option"><div class="split"><div>' + (index + 1) + '. ' + item.country + '</div><div>' + format_num(item.value) + '</div></div></div>';
+      container += '<div id="option" country="' + item.country + '"><div class="split"><div>' + (index + 1) + '. ' + item.country + '</div><div>' + format_num(item.value) + '</div></div></div>';
    });
 
    // INJECT THE CONTAINER
