@@ -43,6 +43,18 @@ line {
    z-index: 99;
 }
 
+svg line:nth-child(2) { opacity: 0; }
+
+circle {
+   fill: white;
+   opacity: 0.4;
+   cursor: pointer;
+}
+
+circle:hover {
+   opacity: 1;
+}
+
 .population-area, .emission-area, .capita-area {
    opacity: 0.6;
    stroke-width: 2px;
@@ -61,4 +73,12 @@ line {
 .capita-area {
    fill: rgb(33, 89, 141);
    stroke: rgb(60, 121, 179);
+}
+
+#tooltip {
+   background: white;
+   position: absolute;
+   padding: 3px 5px;
+   border-radius: 4px;
+   display: none;
 }

@@ -176,7 +176,29 @@ function format_num(number) {
    return number;
 }
 
+// OPEN PROMPT WINDOW
+function start_loading() {
+
+   // RENDER IN REQUESTED SELECTOR
+   $('body').prepend('<div id="prompt"><div id="prompt-inner"><div class="lds-dual-ring"></div></div></div>');
+   
+   // WAIT 50MS & GRADUALLY TURN OPACITY ON
+   return sleep(50).then(() => { $('#prompt').css('opacity', '1'); });
+}
+
+// CLOSE PROMPT WINDOW
+function stop_loading() {
+
+   // TURN OPACITY OFF
+   $('#prompt').css('opacity', 0);
+
+   // WAIT 300MS, THEN REMOVE THE PROMPT SELECTOR
+   sleep(300).then(() => { $('#prompt').remove(); });
+}
+
 // EXPORT MODULES
 module.exports = {
-   options: options
+   options: options,
+   start_loading: start_loading,
+   stop_loading: stop_loading
 };

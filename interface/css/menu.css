@@ -43,7 +43,7 @@
 
 input {
    background: rgba(59, 130, 197, 0.363);
-   background-image: url('../interface/img/search.png');
+   background-image: url('../img/search.png');
    background-repeat: no-repeat;
    background-position: right center;
    border-bottom: 2px solid rgba(66, 136, 201, 0.233);

@@ -7,9 +7,6 @@ function dropdown() {
       // FIND MENU HEIGHT
       var top = $('#menu')[0].offsetHeight;
 
-      // RESET THE SEARCH FILTER
-      search(true);
-
       // CHANGE POSITION
       $('#options').css('top', top);
       $('#options').css('display', 'block');
@@ -49,7 +46,6 @@ function settings(ui) {
 
       // RECALIBRATE OPTIONS MENU & UPDATE THE SEARCH FILTER
       ui.options();
-      search();
    });
 }
 
@@ -69,6 +65,16 @@ function select(build, render, d3) {
       render.chart(build[country], d3);
    });
 
+   // IF THE WINDOW GETS RESIZED
+   $(window).resize(() => {
+
+      // CHECK THE CURRENT INPUT CONTENT
+      var input_value = $('#search').val();
+
+      // IF IT ISNT EMPTY, RE-RENDER
+      if(input_value.length != 0) { render.chart(build[input_value], d3); }
+   });
+
    // SEARCHING EVENT
    $('body').on('keyup keydown', '#search', () => { search(); });
 }
@@ -76,14 +82,14 @@ function select(build, render, d3) {
 // SEARCHING FOR SOMETHING SPECIFIC
 function search(reset = false) {
 
+   // DECLARE QUERY VAR
    var query;
 
-   if (reset == false) {
-      // FIND USER QUERY & OPTION SELECTORS
-      query = $('#search').val();
-   } else {
-      query = '';
-   }
+   // USE INPUT VALUE AS QUERY
+   if (reset == false) { query = $('#search').val();
+
+   // USE NOTHING AS QUERY
+   } else { query = ''; }
 
    // LOOP THROUGH THE SELECTORS
    $('div #option').each((num) => {
