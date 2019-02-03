@@ -190,16 +190,10 @@ function select(build, render, d3) {
 }
 
 // SEARCHING FOR SOMETHING SPECIFIC
-function search(reset = false) {
+function search() {
 
    // DECLARE QUERY VAR
-   var query;
-
-   // USE INPUT VALUE AS QUERY
-   if (reset == false) { query = $('#search').val();
-
-   // USE NOTHING AS QUERY
-   } else { query = ''; }
+   var query = $('#search').val();
 
    // LOOP THROUGH THE SELECTORS
    $('div #option').each((num) => {
@@ -209,7 +203,7 @@ function search(reset = false) {
       var country = selector.attributes[1].value;
 
       // IF THE SEARCH MATCHES -- SHOW SELECTOR
-      if (country.toLowerCase().indexOf(query.toLowerCase()) > -1) { selector.style.display = 'block';
+      if (country.toLowerCase().indexOf(query.toLowerCase()) > -1) { selector.style.display = 'block'; something = true; 
 
       // IF IT DOESNT -- HIDE IT
       } else { selector.style.display = 'none'; }
@@ -324,12 +318,12 @@ function generate_charts(data, years, d3) {
 
 // SHOW TOOLTIP
 function show_tooltip(event, year, value) {
-
+   
    // SHORTHAND
    var tooltip = $('#tooltip');
 
    // INJECT NEW TOOLTIP CONTENT
-   tooltip.html(year + ': ' + value).css('display', 'block')
+   tooltip.html(year + ': ' + format_num(value)).css('display', 'block')
 
    // FIND DOT COORDINATES
    var coords = {
@@ -342,11 +336,39 @@ function show_tooltip(event, year, value) {
       height: tooltip[0].clientHeight,
       width: tooltip[0].clientWidth
    }
+   
+   // SET Y OFFSET
+   var offset = 15;
+
+   // FIGURE OUT TOOLTIP POSITIONS
+   var positions = {
+      middle: {
+         top: coords.top - (dimensions.height + offset),
+         left: coords.left - (dimensions.width / 2)
+      },
+      left: {
+         top: coords.top - (dimensions.height / 2),
+         left: coords.left - (dimensions.width + offset)
+      },
+      right: {
+         top: coords.top - (dimensions.height / 2),
+         left: coords.left + offset
+      },
+   }
+
+   // DEFAULT ALIGNMENT
+   var align = 'middle';
+
+   // IF THERE ISN'T ENOUGH SPACE ON THE LEFT -- SWITCH TO RIGHT
+   if ((coords.left - (dimensions.width / 2)) < 0) { align = 'right'; }
+
+   // IF THERE ISN'T ENOUGH SPACE ON THE RIGHT -- SWITCH TO LEFT
+   if ((coords.left + (dimensions.width / 2)) > window.innerWidth) { align = 'left'; }
 
    // POSITION & SHOW THE TOOLTIP
    tooltip
-      .css('top', coords.top - (dimensions.height + 15))
-      .css('left', coords.left - (dimensions.width / 2))
+      .css('top', positions[align].top)
+      .css('left', positions[align].left)
       .css('opacity', 1)
 }
 
@@ -382,7 +404,8 @@ function options(response = null) {
 
    // LOOP THROUGH THE KEYS & CONSTRUCT AN OPTION
    filtered.forEach((item, index) => {
-      container += '<div id="option" country="' + item.country + '"><div class="split"><div>' + (index + 1) + '. ' + item.country + '</div><div>' + format_num(item.value) + '</div></div></div>';
+      var years = Object.keys(build[item.country].overview);
+      container += '<div id="option" country="' + item.country + '"><div class="split"><div>' + (index + 1) + '. ' + item.country + '</div><div>' + years[0] + ' - ' + years[years.length - 1] + '</div><div>' + format_num(item.value) + '</div></div></div>';
    });
 
    // INJECT THE CONTAINER
@@ -519,25 +542,6 @@ function bubble_sort(list) {
    } while (swapped);
 
    return list;
-}
-
-// FORMAT NUMBERS TO BE MORE PRESENTABLE
-function format_num(number) {
-
-   // IF THE NUMBER IS HIGHER THAN A MILLION -- DIVIDE MY A THOUSAND AND ADD A 'K'
-   if (number > 1000000) {
-      number = (number / 1000).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " K";
-   
-   } else {
-      
-      // MORE THAN A THOUSAND
-      if (number > 1000) { number = number.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-
-      // LESS THAN A THOUSAND
-      } else { number = number.toFixed(2); }
-   }
-
-   return number;
 }
 
 // OPEN PROMPT WINDOW

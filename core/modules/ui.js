@@ -18,7 +18,8 @@ function options(response = null) {
 
    // LOOP THROUGH THE KEYS & CONSTRUCT AN OPTION
    filtered.forEach((item, index) => {
-      container += '<div id="option" country="' + item.country + '"><div class="split"><div>' + (index + 1) + '. ' + item.country + '</div><div>' + format_num(item.value) + '</div></div></div>';
+      var years = Object.keys(build[item.country].overview);
+      container += '<div id="option" country="' + item.country + '"><div class="split"><div>' + (index + 1) + '. ' + item.country + '</div><div>' + years[0] + ' - ' + years[years.length - 1] + '</div><div>' + format_num(item.value) + '</div></div></div>';
    });
 
    // INJECT THE CONTAINER
@@ -155,25 +156,6 @@ function bubble_sort(list) {
    } while (swapped);
 
    return list;
-}
-
-// FORMAT NUMBERS TO BE MORE PRESENTABLE
-function format_num(number) {
-
-   // IF THE NUMBER IS HIGHER THAN A MILLION -- DIVIDE MY A THOUSAND AND ADD A 'K'
-   if (number > 1000000) {
-      number = (number / 1000).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " K";
-   
-   } else {
-      
-      // MORE THAN A THOUSAND
-      if (number > 1000) { number = number.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-
-      // LESS THAN A THOUSAND
-      } else { number = number.toFixed(2); }
-   }
-
-   return number;
 }
 
 // OPEN PROMPT WINDOW

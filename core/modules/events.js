@@ -80,16 +80,10 @@ function select(build, render, d3) {
 }
 
 // SEARCHING FOR SOMETHING SPECIFIC
-function search(reset = false) {
+function search() {
 
    // DECLARE QUERY VAR
-   var query;
-
-   // USE INPUT VALUE AS QUERY
-   if (reset == false) { query = $('#search').val();
-
-   // USE NOTHING AS QUERY
-   } else { query = ''; }
+   var query = $('#search').val();
 
    // LOOP THROUGH THE SELECTORS
    $('div #option').each((num) => {
@@ -99,7 +93,7 @@ function search(reset = false) {
       var country = selector.attributes[1].value;
 
       // IF THE SEARCH MATCHES -- SHOW SELECTOR
-      if (country.toLowerCase().indexOf(query.toLowerCase()) > -1) { selector.style.display = 'block';
+      if (country.toLowerCase().indexOf(query.toLowerCase()) > -1) { selector.style.display = 'block'; something = true; 
 
       // IF IT DOESNT -- HIDE IT
       } else { selector.style.display = 'none'; }

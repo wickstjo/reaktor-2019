@@ -28,12 +28,12 @@ a:hover { color: rgb(175, 30, 30); }
 
 .split > div {
    display: table-cell;
-   width: auto;
+   width: 60%;
    text-align: left;
    vertical-align: top;
 }
 
-.split div:nth-child(2) { text-align: right; }
+.split div:nth-child(2), .split div:nth-child(3) { text-align: right; width: 20%; }
 
 /* --- WRAPPER --- */
 

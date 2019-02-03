@@ -99,12 +99,12 @@ function generate_charts(data, years, d3) {
 
 // SHOW TOOLTIP
 function show_tooltip(event, year, value) {
-
+   
    // SHORTHAND
    var tooltip = $('#tooltip');
 
    // INJECT NEW TOOLTIP CONTENT
-   tooltip.html(year + ': ' + value).css('display', 'block')
+   tooltip.html(year + ': ' + format_num(value)).css('display', 'block')
 
    // FIND DOT COORDINATES
    var coords = {
@@ -117,11 +117,39 @@ function show_tooltip(event, year, value) {
       height: tooltip[0].clientHeight,
       width: tooltip[0].clientWidth
    }
+   
+   // SET Y OFFSET
+   var offset = 15;
+
+   // FIGURE OUT TOOLTIP POSITIONS
+   var positions = {
+      middle: {
+         top: coords.top - (dimensions.height + offset),
+         left: coords.left - (dimensions.width / 2)
+      },
+      left: {
+         top: coords.top - (dimensions.height / 2),
+         left: coords.left - (dimensions.width + offset)
+      },
+      right: {
+         top: coords.top - (dimensions.height / 2),
+         left: coords.left + offset
+      },
+   }
+
+   // DEFAULT ALIGNMENT
+   var align = 'middle';
+
+   // IF THERE ISN'T ENOUGH SPACE ON THE LEFT -- SWITCH TO RIGHT
+   if ((coords.left - (dimensions.width / 2)) < 0) { align = 'right'; }
+
+   // IF THERE ISN'T ENOUGH SPACE ON THE RIGHT -- SWITCH TO LEFT
+   if ((coords.left + (dimensions.width / 2)) > window.innerWidth) { align = 'left'; }
 
    // POSITION & SHOW THE TOOLTIP
    tooltip
-      .css('top', coords.top - (dimensions.height + 15))
-      .css('left', coords.left - (dimensions.width / 2))
+      .css('top', positions[align].top)
+      .css('left', positions[align].left)
       .css('opacity', 1)
 }
 
