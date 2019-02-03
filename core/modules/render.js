@@ -68,7 +68,7 @@ function generate_charts(data, years, d3) {
             .attr('class', header + '-area')
             .attr('d', path)
 
-         // ADD DOTS
+         // ADD GRIDLINES
          canvas.selectAll('.' + header + '-line')
             .data(data[header])
                .enter().append('line')
@@ -77,17 +77,7 @@ function generate_charts(data, years, d3) {
                .attr('x2', (data, i) => { return xScale(i) })
                .attr('y1', 0)
                .attr('y2', selector.height)
-
-               .on('mouseover', function(d, i) {
-                  d3.select(this)
-                  show_tooltip(d3.event, years[i], d);
-               })
    });
-}
-
-function testing(data, index) {
-   log(data)
-   log(index)
 }
 
 // SHOW TOOLTIP
@@ -116,12 +106,6 @@ function show_tooltip(event, year, value) {
       .css('top', coords.top - (dimensions.height + 10))
       .css('left', coords.left - (dimensions.width / 2))
       .css('opacity', 1)
-}
-
-// HIDE TOOLTIP
-function hide_tooltip() {
-   $('#tooltip').css('display', 'none');
-   $('#tooltip').css('opacity', 0);
 }
 
 // EXPORT MODULES

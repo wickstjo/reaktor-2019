@@ -7,7 +7,6 @@ var d3 = require("d3");
 
 // CREATE THE BUILD
 build.dev().then((response) => {
-
    ui.options(response);
    events.settings(ui);
    events.dropdown();
@@ -110,6 +109,9 @@ function dropdown() {
       // FIND MENU HEIGHT
       var top = $('#menu')[0].offsetHeight;
 
+      // RESET THE SEARCH FILTER
+      search(true);
+
       // CHANGE POSITION
       $('#options').css('top', top);
       $('#options').css('display', 'block');
@@ -147,23 +149,56 @@ function settings(ui) {
       // TOGGLE TO ACTIVE
       } else { $(event.target).attr('class', 'active'); }
 
-      // RECALIBRATE OPTIONS MENU
+      // RECALIBRATE OPTIONS MENU & UPDATE THE SEARCH FILTER
       ui.options();
+      search();
    });
 }
 
-// SELECT EVENTS
+// OPTION SELECTION/FILTERING EVENTS
 function select(build, render, d3) {
+
+   // SELECT SOMETHING
    $('body').on('click', '#option', (event) => {
 
       // FETCH SELECTED COUNTRY
       var country = $(event.currentTarget).attr('country');
 
-      // SET INPUT VALUE
+      // SET INPUT VALUE & RECALIBRATE SEARCH FILTER
       $('#search').val(country);
 
       // RENDER CHART
       render.chart(build[country], d3);
+   });
+
+   // SEARCHING EVENT
+   $('body').on('keyup keydown', '#search', () => { search(); });
+}
+
+// SEARCHING FOR SOMETHING SPECIFIC
+function search(reset = false) {
+
+   var query;
+
+   if (reset == false) {
+      // FIND USER QUERY & OPTION SELECTORS
+      query = $('#search').val();
+   } else {
+      query = '';
+   }
+
+   // LOOP THROUGH THE SELECTORS
+   $('div #option').each((num) => {
+
+      // SHORTHANDS
+      var selector = $('div #option')[num];
+      var country = selector.attributes[1].value;
+
+      // IF THE SEARCH MATCHES -- SHOW SELECTOR
+      if (country.toLowerCase().indexOf(query.toLowerCase()) > -1) { selector.style.display = 'block';
+
+      // IF IT DOESNT -- HIDE IT
+      } else { selector.style.display = 'none'; }
    });
 }
 
@@ -244,7 +279,7 @@ function generate_charts(data, years, d3) {
             .attr('class', header + '-area')
             .attr('d', path)
 
-         // ADD DOTS
+         // ADD GRIDLINES
          canvas.selectAll('.' + header + '-line')
             .data(data[header])
                .enter().append('line')
@@ -253,17 +288,7 @@ function generate_charts(data, years, d3) {
                .attr('x2', (data, i) => { return xScale(i) })
                .attr('y1', 0)
                .attr('y2', selector.height)
-
-               .on('mouseover', function(d, i) {
-                  d3.select(this)
-                  show_tooltip(d3.event, years[i], d);
-               })
    });
-}
-
-function testing(data, index) {
-   log(data)
-   log(index)
 }
 
 // SHOW TOOLTIP
@@ -294,12 +319,6 @@ function show_tooltip(event, year, value) {
       .css('opacity', 1)
 }
 
-// HIDE TOOLTIP
-function hide_tooltip() {
-   $('#tooltip').css('display', 'none');
-   $('#tooltip').css('opacity', 0);
-}
-
 // EXPORT MODULES
 module.exports = {
    chart: chart
@@ -307,7 +326,6 @@ module.exports = {
 },{}],5:[function(require,module,exports){
 var build = {};
 var countries = [];
-var latest = [];
 
 // CONSTRUCT THE OPTIONS MENU
 function options(response = null) {
@@ -367,9 +385,6 @@ function filter(keys) {
 
    // IF 'LOWEST FIRST' IS ACTIVE, REVERSE THE ARRAY
    if (highlow == true) { keys = keys.reverse() }
-
-   // MAKE LATEST REQUEST GLOBALLY AVAILABLE
-   latest = keys;
 
    return keys;
 }

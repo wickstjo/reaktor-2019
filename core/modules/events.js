@@ -7,6 +7,9 @@ function dropdown() {
       // FIND MENU HEIGHT
       var top = $('#menu')[0].offsetHeight;
 
+      // RESET THE SEARCH FILTER
+      search(true);
+
       // CHANGE POSITION
       $('#options').css('top', top);
       $('#options').css('display', 'block');
@@ -44,23 +47,56 @@ function settings(ui) {
       // TOGGLE TO ACTIVE
       } else { $(event.target).attr('class', 'active'); }
 
-      // RECALIBRATE OPTIONS MENU
+      // RECALIBRATE OPTIONS MENU & UPDATE THE SEARCH FILTER
       ui.options();
+      search();
    });
 }
 
-// SELECT EVENTS
+// OPTION SELECTION/FILTERING EVENTS
 function select(build, render, d3) {
+
+   // SELECT SOMETHING
    $('body').on('click', '#option', (event) => {
 
       // FETCH SELECTED COUNTRY
       var country = $(event.currentTarget).attr('country');
 
-      // SET INPUT VALUE
+      // SET INPUT VALUE & RECALIBRATE SEARCH FILTER
       $('#search').val(country);
 
       // RENDER CHART
       render.chart(build[country], d3);
+   });
+
+   // SEARCHING EVENT
+   $('body').on('keyup keydown', '#search', () => { search(); });
+}
+
+// SEARCHING FOR SOMETHING SPECIFIC
+function search(reset = false) {
+
+   var query;
+
+   if (reset == false) {
+      // FIND USER QUERY & OPTION SELECTORS
+      query = $('#search').val();
+   } else {
+      query = '';
+   }
+
+   // LOOP THROUGH THE SELECTORS
+   $('div #option').each((num) => {
+
+      // SHORTHANDS
+      var selector = $('div #option')[num];
+      var country = selector.attributes[1].value;
+
+      // IF THE SEARCH MATCHES -- SHOW SELECTOR
+      if (country.toLowerCase().indexOf(query.toLowerCase()) > -1) { selector.style.display = 'block';
+
+      // IF IT DOESNT -- HIDE IT
+      } else { selector.style.display = 'none'; }
    });
 }
 

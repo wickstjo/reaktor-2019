@@ -6,7 +6,6 @@ var d3 = require("d3");
 
 // CREATE THE BUILD
 build.dev().then((response) => {
-
    ui.options(response);
    events.settings(ui);
    events.dropdown();

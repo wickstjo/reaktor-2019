@@ -1,0 +1,52 @@
+@font-face { font-family: 'Open Sans'; src: url('../fonts/main.woff'); }
+input, span, li { all: unset; }
+
+body {
+   background-color: rgb(56, 56, 56);
+   background-image: url('../img/bg.png');
+	font: 13px 'Open Sans', verdana;
+   color: #505050;
+   padding: 0px;
+   margin: 0px;
+}
+
+a:link, a:visited, a:hover {
+	color: #0073A9;
+   transition: .3s;
+   cursor: pointer;
+   text-decoration: none;
+}
+
+a:hover { color: rgb(175, 30, 30); }
+
+/* --- SPLIT TABLE --- */
+
+.split {
+   display: table;
+   width: 100%
+}
+
+.split > div {
+   display: table-cell;
+   width: auto;
+   text-align: left;
+   vertical-align: top;
+}
+
+.split div:nth-child(2) { text-align: right; }
+
+/* --- WRAPPER --- */
+
+#wrapper {
+   width: 100%;
+   height: 100%;
+   display: table;
+}
+
+#wrapper #menu-outer, #wrapper .chart-outer {
+   display: table-row;
+   height: auto;
+   width: 100%;
+}
+
+#wrapper #menu-outer { height: 1px; }

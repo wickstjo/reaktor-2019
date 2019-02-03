@@ -1,6 +1,5 @@
 var build = {};
 var countries = [];
-var latest = [];
 
 // CONSTRUCT THE OPTIONS MENU
 function options(response = null) {
@@ -60,9 +59,6 @@ function filter(keys) {
 
    // IF 'LOWEST FIRST' IS ACTIVE, REVERSE THE ARRAY
    if (highlow == true) { keys = keys.reverse() }
-
-   // MAKE LATEST REQUEST GLOBALLY AVAILABLE
-   latest = keys;
 
    return keys;
 }
