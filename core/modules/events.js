@@ -1,8 +1,17 @@
+var $ = require("jquery");
+var selected = '';
+
 // DROPDOWN EVENTS
 function dropdown() {
 
    // SHOW PRIMARY OPTIONS
    $('body').on('click', '#search', () => {
+
+      // IF THE DROPDOWN ISNT OPEN, PURGE THE INPUT VALUE & RESET THE FILTER
+      if ($('#options').css('display') != 'block') {
+         $('#search').val('');
+         search();
+      }
 
       // FIND MENU HEIGHT
       var top = $('#menu')[0].offsetHeight;
@@ -26,7 +35,10 @@ function dropdown() {
          var check = $.inArray(target, whitelist);
 
          // IF IT ISNT
-         if (check == -1) { $('#options').css('display', 'none'); }
+         if (check == -1) {
+            $('#options').css('display', 'none');
+            $('#search').val(selected);
+         }
       }
    });
 }
@@ -44,13 +56,27 @@ function settings(ui) {
       // TOGGLE TO ACTIVE
       } else { $(event.target).attr('class', 'active'); }
 
-      // RECALIBRATE OPTIONS MENU & UPDATE THE SEARCH FILTER
+      // RECALIBRATE OPTIONS MENU & SEARCH FILTER
       ui.options();
+      search();
    });
 }
 
 // OPTION SELECTION/FILTERING EVENTS
-function select(build, render, d3) {
+function select(build) {
+
+   // FETCH THE D3 MODULE
+   var d3 = require("d3");
+   var render = require('../modules/render.js');
+
+
+   // ON LOAD, RENDER A RANDOM COUNTRY
+   if (selected == '') {
+      var random = randomize(Object.keys(build));
+      $('#search').val(random);
+      selected = random;
+      render.chart(build[random], d3);
+   }
 
    // SELECT SOMETHING
    $('body').on('click', '#option', (event) => {
@@ -58,8 +84,9 @@ function select(build, render, d3) {
       // FETCH SELECTED COUNTRY
       var country = $(event.currentTarget).attr('country');
 
-      // SET INPUT VALUE & RECALIBRATE SEARCH FILTER
+      // SET INPUT VALUE & SELECTED VAR
       $('#search').val(country);
+      selected = country;
 
       // RENDER CHART
       render.chart(build[country], d3);
@@ -68,11 +95,19 @@ function select(build, render, d3) {
    // IF THE WINDOW GETS RESIZED
    $(window).resize(() => {
 
-      // CHECK THE CURRENT INPUT CONTENT
-      var input_value = $('#search').val();
+      // DEFAULT SEARCH PLACEHOLDER
+      var placeholder = 'Select a Country or Region';
+
+      // IF WINDOW SIZE IS SMALL, CHANGE IT
+      if (window.innerWidth < 600) {
+         placeholder = 'Country';
+      }
+
+      // SET PLACEHOLDER
+      $('#search').attr('placeholder', placeholder);
 
       // IF IT ISNT EMPTY, RE-RENDER
-      if(input_value.length != 0) { render.chart(build[input_value], d3); }
+      if(selected != '') { render.chart(build[selected], d3); }
    });
 
    // SEARCHING EVENT

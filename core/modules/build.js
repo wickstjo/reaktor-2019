@@ -1,3 +1,5 @@
+var $ = require("jquery");
+
 // FETCH DATA BASED ON QUERY CODE
 function fetch(code) {
 

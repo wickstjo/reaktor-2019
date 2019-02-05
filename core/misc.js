@@ -24,3 +24,9 @@ function format_num(number) {
 
    return number;
 }
+
+// PICK A RANDOM ARRAY VALUE
+function randomize(array) {
+   var index = Math.floor((Math.random() * array.length) + 0);
+   return array[index];
+}

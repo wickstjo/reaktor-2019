@@ -1,3 +1,5 @@
+var $ = require("jquery");
+
 // RENDER DATA TO A CHART
 function chart(data, d3) {
    
@@ -103,8 +105,11 @@ function show_tooltip(event, year, value) {
    // SHORTHAND
    var tooltip = $('#tooltip');
 
+   // GENERATE TOOLTIP CONTENT
+   var content = '<div id="year">' + year + '</div><div id="value">' + format_num(value) + '</div>';
+
    // INJECT NEW TOOLTIP CONTENT
-   tooltip.html(year + ': ' + format_num(value)).css('display', 'block')
+   tooltip.html(content).css('display', 'block')
 
    // FIND DOT COORDINATES
    var coords = {
